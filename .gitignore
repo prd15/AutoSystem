@@ -1,0 +1,14 @@
+# Configuração local de ferramentas
+.claude/
+
+# Dependências e build
+node_modules/
+dist/
+
+# Ambiente
+.env
+.env.local
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
