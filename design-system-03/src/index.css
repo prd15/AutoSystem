@@ -1,0 +1,278 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   AutoSystem 04 — "Aqua"
+   Linguagem visual do macOS (Sonoma/Sequoia) sobre o contrato de tokens do
+   shadcn/ui. Neutros quase acromáticos, azul de sistema como única cor de
+   ação, semáforo de estado (verde / laranja / cinza), superfícies com
+   translucidez e hairlines de 1px em vez de sombras pesadas.
+   ========================================================================== */
+
+:root {
+  --radius: 0.625rem;
+
+  /* Papel de parede visível através da barra lateral translúcida. */
+  --wallpaper: radial-gradient(at 12% 8%, oklch(0.86 0.09 225) 0px, transparent 50%),
+    radial-gradient(at 88% 12%, oklch(0.88 0.08 300) 0px, transparent 50%),
+    radial-gradient(at 20% 90%, oklch(0.9 0.08 50) 0px, transparent 55%),
+    radial-gradient(at 85% 85%, oklch(0.85 0.1 200) 0px, transparent 50%),
+    oklch(0.94 0.02 250);
+
+  --background: oklch(0.975 0.002 260);
+  --foreground: oklch(0.21 0.006 260);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.006 260);
+
+  --popover: oklch(1 0 0 / 0.92);
+  --popover-foreground: oklch(0.21 0.006 260);
+
+  --primary: oklch(0.6 0.21 258);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.955 0.004 260);
+  --secondary-foreground: oklch(0.28 0.008 260);
+
+  --muted: oklch(0.955 0.004 260);
+  --muted-foreground: oklch(0.54 0.012 260);
+
+  --accent: oklch(0.945 0.006 260);
+  --accent-foreground: oklch(0.21 0.006 260);
+
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0 0 0 / 0.09);
+  --input: oklch(0 0 0 / 0.12);
+  --ring: oklch(0.6 0.21 258);
+
+  /* Semáforo de estado: fundo suave + texto AA + ponto sólido. */
+  --success: oklch(0.955 0.045 150);
+  --success-foreground: oklch(0.42 0.13 150);
+  --success-solid: oklch(0.72 0.2 150);
+  --warning: oklch(0.965 0.06 78);
+  --warning-foreground: oklch(0.52 0.14 62);
+  --warning-solid: oklch(0.78 0.17 70);
+  --neutral: oklch(0.945 0.004 260);
+  --neutral-foreground: oklch(0.5 0.01 260);
+  --neutral-solid: oklch(0.68 0.01 260);
+  --info: oklch(0.955 0.03 250);
+  --info-foreground: oklch(0.45 0.15 255);
+
+  /* Barra lateral com vibrancy. */
+  --sidebar: oklch(0.97 0.003 260 / 0.62);
+  --sidebar-foreground: oklch(0.24 0.006 260);
+  --sidebar-primary: oklch(0.6 0.21 258);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0 0 0 / 0.07);
+  --sidebar-accent-foreground: oklch(0.21 0.006 260);
+  --sidebar-border: oklch(0 0 0 / 0.08);
+
+  --chart-1: oklch(0.6 0.21 258);
+  --chart-2: oklch(0.72 0.2 150);
+  --chart-3: oklch(0.78 0.17 70);
+  --chart-4: oklch(0.65 0.2 300);
+  --chart-5: oklch(0.68 0.01 260);
+
+  --shadow-card: 0 0 0 1px oklch(0 0 0 / 0.05), 0 1px 2px oklch(0 0 0 / 0.04);
+  --shadow-raised: 0 0 0 1px oklch(0 0 0 / 0.06), 0 2px 6px oklch(0 0 0 / 0.06), 0 8px 24px -8px oklch(0 0 0 / 0.08);
+  --shadow-pop: 0 0 0 1px oklch(0 0 0 / 0.08), 0 10px 40px -8px oklch(0 0 0 / 0.22);
+  --shadow-window: 0 0 0 1px oklch(0 0 0 / 0.12), 0 24px 80px -10px oklch(0 0 0 / 0.45);
+}
+
+.dark {
+  --wallpaper: radial-gradient(at 12% 8%, oklch(0.4 0.12 260) 0px, transparent 50%),
+    radial-gradient(at 88% 12%, oklch(0.38 0.12 310) 0px, transparent 50%),
+    radial-gradient(at 20% 90%, oklch(0.36 0.1 30) 0px, transparent 55%),
+    radial-gradient(at 85% 85%, oklch(0.35 0.1 200) 0px, transparent 50%),
+    oklch(0.2 0.02 260);
+
+  --background: oklch(0.215 0.004 260);
+  --foreground: oklch(0.95 0.003 260);
+
+  --card: oklch(0.265 0.005 260);
+  --card-foreground: oklch(0.95 0.003 260);
+
+  --popover: oklch(0.27 0.005 260 / 0.94);
+  --popover-foreground: oklch(0.95 0.003 260);
+
+  --primary: oklch(0.66 0.19 255);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.31 0.005 260);
+  --secondary-foreground: oklch(0.93 0.003 260);
+
+  --muted: oklch(0.3 0.005 260);
+  --muted-foreground: oklch(0.68 0.01 260);
+
+  --accent: oklch(1 0 0 / 0.07);
+  --accent-foreground: oklch(0.95 0.003 260);
+
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.14);
+  --ring: oklch(0.66 0.19 255);
+
+  --success: oklch(0.32 0.06 150);
+  --success-foreground: oklch(0.82 0.16 150);
+  --success-solid: oklch(0.74 0.19 150);
+  --warning: oklch(0.34 0.07 70);
+  --warning-foreground: oklch(0.85 0.15 75);
+  --warning-solid: oklch(0.8 0.17 70);
+  --neutral: oklch(0.32 0.005 260);
+  --neutral-foreground: oklch(0.72 0.01 260);
+  --neutral-solid: oklch(0.6 0.01 260);
+  --info: oklch(0.32 0.06 255);
+  --info-foreground: oklch(0.82 0.12 250);
+
+  --sidebar: oklch(0.24 0.004 260 / 0.6);
+  --sidebar-foreground: oklch(0.92 0.003 260);
+  --sidebar-primary: oklch(0.66 0.19 255);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(1 0 0 / 0.09);
+  --sidebar-accent-foreground: oklch(0.97 0.003 260);
+  --sidebar-border: oklch(1 0 0 / 0.08);
+
+  --chart-1: oklch(0.66 0.19 255);
+  --chart-2: oklch(0.74 0.19 150);
+  --chart-3: oklch(0.8 0.17 70);
+  --chart-4: oklch(0.7 0.18 300);
+  --chart-5: oklch(0.6 0.01 260);
+
+  --shadow-card: 0 0 0 1px oklch(1 0 0 / 0.07), 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-raised: 0 0 0 1px oklch(1 0 0 / 0.08), 0 2px 6px oklch(0 0 0 / 0.3), 0 8px 24px -8px oklch(0 0 0 / 0.5);
+  --shadow-pop: 0 0 0 1px oklch(1 0 0 / 0.1), 0 10px 40px -8px oklch(0 0 0 / 0.6);
+  --shadow-window: 0 0 0 1px oklch(1 0 0 / 0.14), 0 24px 80px -10px oklch(0 0 0 / 0.7);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-solid: var(--success-solid);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-solid: var(--warning-solid);
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
+  --color-neutral-solid: var(--neutral-solid);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-xs: calc(var(--radius) - 6px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-pop: var(--shadow-pop);
+  --shadow-window: var(--shadow-window);
+
+  /* SF Pro quando existir (macOS/iOS); Inter é o substituto métrico mais próximo. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter",
+    "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --ease-mac: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply text-foreground min-h-svh text-[14px] leading-normal;
+    background: var(--wallpaper);
+    background-attachment: fixed;
+    font-optical-sizing: auto;
+    font-feature-settings: "ss03", "cv05";
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 28%, transparent);
+  }
+  /* Números de preço, km, ano e data alinham em coluna. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@utility vibrancy {
+  background: var(--sidebar);
+  backdrop-filter: saturate(180%) blur(28px);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
+}
+
+@utility glass {
+  background: var(--popover);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+@utility hairline {
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+/* Barra de rolagem discreta, estilo overlay do macOS. */
+@utility scroll-mac {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--foreground) 22%, transparent);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
