@@ -58,3 +58,4 @@ A navegação do front é por hash (`#/estoque`), então não precisa de fallbac
 | [Stack e arquitetura](docs/06-stack-e-arquitetura.md) | Comparativo e recomendação |
 | [Decisões arquiteturais](docs/07-decisoes-arquiteturais.md) | Pauta de decisões do monólito |
 | [Front-end](frontend/README.md) | Telas, design system, formulários |
+| [Como contribuir](CONTRIBUTING.md) | Fluxo de git, padrão de commit e checagens antes do PR |
