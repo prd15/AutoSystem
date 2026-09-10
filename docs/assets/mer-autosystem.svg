@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="240" viewBox="0 0 680 240" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" role="img">
+<title>MER conceitual — AutoSystem</title>
+<desc>Cliente 1:0..N Venda; Veiculo 1:0..1 Venda. Venda e a entidade associativa.</desc>
+<rect x="0" y="0" width="680" height="240" fill="#FFFFFF"/>
+
+<line x1="190" y1="153" x2="260" y2="153" stroke="#5F5E5A" stroke-width="1"/>
+<text x="225" y="146" text-anchor="middle" font-size="12" fill="#5F5E5A">realiza</text>
+<text x="199" y="171" text-anchor="middle" font-size="12" fill="#5F5E5A">1</text>
+<text x="240" y="171" text-anchor="middle" font-size="12" fill="#5F5E5A">0..N</text>
+
+<line x1="410" y1="153" x2="480" y2="153" stroke="#5F5E5A" stroke-width="1"/>
+<text x="445" y="146" text-anchor="middle" font-size="12" fill="#5F5E5A">registra</text>
+<text x="426" y="171" text-anchor="middle" font-size="12" fill="#5F5E5A">0..1</text>
+<text x="472" y="171" text-anchor="middle" font-size="12" fill="#5F5E5A">1</text>
+
+<rect x="40" y="110" width="150" height="26" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/>
+<text x="115" y="127" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">Cliente</text>
+<rect x="40" y="136" width="150" height="72" rx="4" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.75"/>
+<text x="52" y="161" font-size="14" fill="#2C2C2A">id — PK</text>
+<text x="52" y="181" font-size="14" fill="#2C2C2A">nome</text>
+<text x="52" y="201" font-size="14" fill="#2C2C2A">cpf — único</text>
+
+<rect x="260" y="104" width="150" height="26" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<text x="335" y="121" text-anchor="middle" font-size="14" font-weight="500" fill="#3C3489">Venda</text>
+<rect x="260" y="130" width="150" height="72" rx="4" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.75"/>
+<text x="272" y="155" font-size="14" fill="#2C2C2A">id — PK</text>
+<text x="272" y="175" font-size="14" fill="#2C2C2A">valor_venda</text>
+<text x="272" y="195" font-size="14" fill="#2C2C2A">data_venda</text>
+
+<rect x="480" y="96" width="150" height="26" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.75"/>
+<text x="555" y="113" text-anchor="middle" font-size="14" font-weight="500" fill="#0C447C">Veículo</text>
+<rect x="480" y="122" width="150" height="92" rx="4" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.75"/>
+<text x="492" y="145" font-size="14" fill="#2C2C2A">id — PK</text>
+<text x="492" y="166" font-size="14" fill="#2C2C2A">marca / modelo</text>
+<text x="492" y="187" font-size="14" fill="#2C2C2A">placa — única</text>
+<text x="492" y="208" font-size="14" fill="#2C2C2A">status</text>
+</svg>
