@@ -1,6 +1,6 @@
 # 01 — Inventário funcional
 
-Tudo que o protótipo `design-system-03` faz hoje. Serve como base de estimativa: cada linha
+Tudo que o protótipo `frontend` faz hoje. Serve como base de estimativa: cada linha
 aqui é trabalho que o back-end precisa sustentar.
 
 ## Navegação

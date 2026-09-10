@@ -7,7 +7,7 @@ Cada item traz opções, recomendação e o que muda na prática. Nada aqui est�
 documento existe para a reunião bater o martelo e registrar o porquê.
 
 Base factual: [01](01-inventario-funcional.md) a [06](06-stack-e-arquitetura.md), extraídos do
-protótipo em `design-system-03`.
+protótipo em `frontend`.
 
 ## Contexto em uma tela
 

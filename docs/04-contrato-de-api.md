@@ -1,6 +1,6 @@
 # 04 — Contrato de API
 
-Derivado método a método de `design-system-03/src/data/store.ts`. O protótipo já foi escrito
+Derivado método a método de `frontend/src/data/store.ts`. O protótipo já foi escrito
 com esse formato em mente: o comentário do arquivo diz que cada método vira um `fetch`.
 
 Convenções: JSON em todas as respostas, datas em ISO `yyyy-mm-dd`, dinheiro como string

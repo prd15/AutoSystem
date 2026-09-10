@@ -1,6 +1,6 @@
 # 02 — Modelo de dados
 
-Tudo extraído de `design-system-03/src/data/store.ts`. As três primeiras entidades vêm do
+Tudo extraído de `frontend/src/data/store.ts`. As três primeiras entidades vêm do
 escopo aprovado; as duas últimas foram criadas pelo protótipo para o módulo financeiro.
 
 ## Visão geral

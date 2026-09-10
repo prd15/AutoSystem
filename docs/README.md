@@ -1,6 +1,6 @@
 # AutoSystem — documentação do protótipo
 
-Levantamento completo do protótipo em `design-system-03` ("Aqua"), feito para embasar a
+Levantamento completo do protótipo em `frontend` ("Aqua"), feito para embasar a
 decisão de stack de front-end, back-end e banco de dados do monólito.
 
 Nada foi alterado no protótipo. Esta pasta só descreve o que existe lá.
@@ -71,7 +71,7 @@ critério de desempate estão em [06](06-stack-e-arquitetura.md).
 ## Como rodar o protótipo
 
 ```bash
-cd design-system-03 && npm install && npm run dev
+cd frontend && npm install && npm run dev
 ```
 
 Abre em http://localhost:5174. Sem back-end: os dados vivem em memória e o botão de
