@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { store, useEstado } from "@/data/store"
+import { teclaMod } from "@/lib/plataforma"
 import { cn } from "@/lib/utils"
 
 const GRUPOS: Array<{ nome: string; rotas: Rota[] }> = [
@@ -26,17 +27,6 @@ const GRUPOS: Array<{ nome: string; rotas: Rota[] }> = [
   { nome: "Pós-venda", rotas: ["oficina", "test-drive"] },
   { nome: "Gestão", rotas: ["financeiro", "relatorios"] },
 ]
-
-/** Os três botões da janela do macOS. Decorativos: identificam a estética. */
-function TrafficLights() {
-  return (
-    <div aria-hidden className="flex items-center gap-2 px-1">
-      <span className="size-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgb(0_0_0/0.15)]" />
-      <span className="size-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgb(0_0_0/0.15)]" />
-      <span className="size-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgb(0_0_0/0.15)]" />
-    </div>
-  )
-}
 
 function Logo({ compacto }: { compacto?: boolean }) {
   return (
@@ -171,17 +161,21 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-svh xl:h-svh xl:p-5">
-      <div className="bg-background xl:shadow-window flex min-h-svh xl:h-full xl:min-h-0 xl:overflow-hidden xl:rounded-[14px]">
-        {/* Barra lateral — translúcida sobre o papel de parede, como no Finder. */}
+    <div className="bg-background flex h-svh overflow-hidden">
+        {/* Barra lateral translúcida sobre o fundo suave. */}
         <aside
           className={cn(
             "vibrancy border-sidebar-border ease-mac hidden shrink-0 flex-col border-r transition-[width] duration-300 md:flex",
             compacto ? "w-[68px]" : "w-[236px]"
           )}
         >
-          <div className="flex h-[52px] items-center justify-between px-3">
-            <TrafficLights />
+          <div
+            className={cn(
+              "flex h-[60px] items-center border-b border-sidebar-border/60",
+              compacto ? "justify-center px-2" : "justify-between pr-2 pl-3"
+            )}
+          >
+            <Logo compacto={compacto} />
             {!compacto && (
               <Button
                 variant="ghost"
@@ -195,9 +189,7 @@ export function AppShell({
             )}
           </div>
 
-          <div className="px-2 pb-3">
-            <Logo compacto={compacto} />
-          </div>
+          <div className="pb-2" />
 
           <nav className="scroll-mac flex flex-1 flex-col gap-4 overflow-y-auto px-3 pb-2">
             {GRUPOS.map((g) => (
@@ -267,7 +259,7 @@ export function AppShell({
 
         {/* Conteúdo */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-[52px] shrink-0 items-center gap-2 border-b px-4">
+          <header className="bg-background/85 flex h-[60px] shrink-0 items-center gap-2 border-b px-4 backdrop-blur sm:px-6">
             <div className="hidden items-center gap-0.5 md:flex">
               <Button
                 variant="ghost"
@@ -304,7 +296,7 @@ export function AppShell({
                 <Search className="size-3.5" />
                 <span className="flex-1 text-left">Buscar</span>
                 <kbd className="bg-card text-muted-foreground rounded-[5px] px-1.5 py-px font-sans text-[11px] shadow-[0_0_0_1px_rgb(0_0_0/0.08)]">
-                  ⌘K
+                  {teclaMod()} K
                 </kbd>
               </button>
               <Button
@@ -358,10 +350,9 @@ export function AppShell({
           </div>
 
           <main className="scroll-mac min-h-0 flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1400px] p-4 sm:p-5">{children}</div>
+            <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6">{children}</div>
           </main>
         </div>
-      </div>
     </div>
   )
 }
