@@ -4,9 +4,22 @@ Protótipo de front-end para o sistema de gestão da concessionária, cobrindo o
 primeira entrega (estoque com CRUD e filtros; gerencial com indicadores, registro de venda
 e histórico) e já mostrando o caminho dos módulos seguintes.
 
-Referência visual: macOS (Sonoma/Sequoia). Barra lateral translúcida sobre papel de parede,
-semáforo da janela, tipografia SF Pro, azul de sistema como única cor de ação, controles
-segmentados, painéis com hairline em vez de sombra pesada.
+Referência visual: macOS (Sonoma/Sequoia). Barra lateral translúcida, tipografia SF Pro com
+Inter como substituto, azul de sistema como única cor de ação, controles segmentados, painéis
+com hairline em vez de sombra pesada. A aplicação ocupa a tela inteira e não imita a janela
+do macOS: vai rodar em qualquer navegador e sistema, servida pelo back-end Spring Boot.
+
+## Integração com o back-end
+
+Todo acesso a dados passa por `src/data/store.ts`, que hoje guarda o estado em memória e
+expõe métodos com os mesmos nomes dos endpoints (`listarVeiculos`, `criarVeiculo`,
+`registrarVenda`, `indicadores`…). Para ligar ao Spring Boot, cada método vira um `fetch`
+em `/api/...`; as telas não mudam.
+
+Em desenvolvimento o Vite já faz proxy de `/api` para `http://localhost:8080` (troque com a
+variável `VITE_API_URL`), então não há CORS. Em produção, `npm run build` gera `dist/`, que
+pode ser copiado para `src/main/resources/static` do projeto Java e servido pelo próprio
+Spring Boot. Como a navegação é por hash (`#/estoque`), não precisa de fallback de rota.
 
 As propostas anteriores seguem intactas em `../design-system` (Ink & Lime),
 `../design-system-02` (Stone & Sage) e `../app` (Signal).
@@ -48,7 +61,7 @@ mover para `src/components/ui` e trocar `from "cn"` por `from "@/lib/utils"`.
 | `#/financeiro` | Três áreas em controle segmentado. **Fluxo de caixa**: entradas, saídas, saldo e pendências do período, gráfico entradas × saídas × saldo mensal, saídas por categoria, lançamentos com busca/tipo/situação/categoria, quitação rápida por forma de pagamento. **Comissões**: 1,5% sobre a venda, geradas automaticamente ao vender, por vendedor com pagamento em lote ou individual. **Financiamentos**: contratos com progresso das parcelas, próxima parcela, atraso; simulador Tabela Price com registro de contrato |
 | demais | Oficina, Test drive, Relatórios e Configurações aparecem como "em breve", com o que está previsto |
 
-Ações globais: `⌘K` / `Ctrl+K` abre a paleta (navegar, cadastrar veículo, registrar venda,
+Ações globais: `Ctrl+K` (`⌘K` no Mac) abre a paleta (navegar, cadastrar veículo, registrar venda,
 novo cliente, trocar tema, pular para um veículo pelo nome ou placa).
 
 ## Formulários
@@ -101,7 +114,7 @@ Além do padrão:
 | `--warning` / `--warning-solid` | reservado, alertas de tempo em estoque |
 | `--neutral` / `--neutral-solid` | vendido |
 | `--info` | destaques neutros |
-| `--wallpaper` | gradiente atrás da janela, visível pela barra lateral |
+| `--wallpaper` | gradiente suave visível através da barra lateral translúcida |
 | `--shadow-card / raised / pop / window` | quatro níveis de elevação |
 | `--font-sans` | `-apple-system, "SF Pro Text", Inter, …` — SF onde existir, Inter como substituto |
 
