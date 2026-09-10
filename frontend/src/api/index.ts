@@ -1,0 +1,7 @@
+export { api, ApiError } from "./client"
+export * from "./tipos"
+export { veiculosApi } from "./veiculos"
+export { clientesApi } from "./clientes"
+export { vendasApi } from "./vendas"
+export { indicadoresApi } from "./indicadores"
+export { financeiroApi } from "./financeiro"
