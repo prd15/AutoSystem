@@ -1,61 +1,392 @@
 # AutoSystem
 
-Sistema de gestão para concessionárias de veículos: estoque, vendas, clientes e visão
-gerencial. Monólito com front-end React e back-end Java + Spring Boot no mesmo repositório.
+Sistema web de gestão para concessionárias de veículos, desenvolvido para centralizar operações comerciais, estoque, clientes, equipe, consórcios, financiamentos, gestão financeira e relatórios em uma única aplicação.
+
+O projeto está atualmente com o **front-end funcional**, utilizando dados em memória para simular as operações do sistema. A arquitetura foi preparada para futura integração com uma API em **Java + Spring Boot + PostgreSQL**.
+
+## Funcionalidades implementadas
+
+### Visão Geral
+
+Dashboard gerencial com indicadores da concessionária, incluindo:
+
+- veículos disponíveis e reservados;
+- valor do estoque;
+- vendas e faturamento;
+- ticket médio;
+- evolução do faturamento;
+- distribuição do estoque;
+- últimas vendas;
+- indicadores adaptados ao perfil do usuário.
+
+Vendedores visualizam seus próprios resultados comerciais, enquanto gerentes e administradores possuem visão global da operação.
+
+### Estoque
+
+Gerenciamento dos veículos da concessionária:
+
+- cadastro de veículos;
+- edição;
+- exclusão;
+- visualização de detalhes;
+- pesquisa e filtros;
+- ordenação;
+- visualização em tabela e quadro;
+- controle de status;
+- integração com vendas.
+
+Vendedores possuem acesso somente para consulta e registro de vendas, enquanto alterações no estoque são restritas aos perfis autorizados.
+
+### Vendas
+
+Registro e acompanhamento das vendas realizadas:
+
+- venda à vista;
+- venda por financiamento;
+- venda por consórcio;
+- seleção de cliente, veículo e vendedor;
+- cálculo de comissão;
+- controle de descontos;
+- histórico de vendas;
+- filtros por período;
+- visualização detalhada da venda;
+- integração automática com estoque e gestão financeira.
+
+O sistema impede que vendedores registrem operações em nome de outro vendedor.
+
+### Clientes
+
+Cadastro e consulta de clientes utilizados nas operações comerciais.
+
+Inclui:
+
+- cadastro de cliente;
+- pesquisa;
+- CPF formatado;
+- telefone formatado;
+- cadastro rápido durante vendas, consórcios e financiamentos.
+
+### Funcionários
+
+Gerenciamento da equipe da concessionária:
+
+- cadastro de funcionários;
+- cargo;
+- status;
+- data de admissão;
+- percentual individual de comissão;
+- criação opcional de acesso ao AutoSystem;
+- definição do perfil de acesso.
+
+O sistema diferencia o cargo do funcionário do perfil de autorização utilizado na aplicação.
+
+### Consórcios
+
+Gerenciamento de propostas e cotas de consórcio:
+
+- cliente;
+- vendedor responsável;
+- administradora;
+- grupo;
+- carta de crédito;
+- taxas administrativas;
+- fundo de reserva;
+- quantidade de parcelas;
+- valor das parcelas;
+- lance;
+- status da cota;
+- contemplação;
+- vínculo com veículo;
+- visualização detalhada.
+
+Os custos do plano são calculados a partir da carta de crédito, taxas e prazo configurados.
+
+### Financiamentos
+
+Gerenciamento e simulação de financiamentos:
+
+- cliente;
+- veículo;
+- vendedor responsável;
+- banco;
+- valor do veículo;
+- entrada;
+- valor financiado;
+- taxa mensal;
+- quantidade de parcelas;
+- cálculo de prestação;
+- custo total;
+- parcelas pagas;
+- saldo restante;
+- status do contrato.
+
+As simulações utilizam o sistema de amortização da **Tabela Price**.
+
+### Gestão Financeira
+
+Área financeira integrada às operações do sistema.
+
+Possui quatro áreas:
+
+- Fluxo de caixa;
+- Comissões;
+- Financiamentos;
+- Consórcios.
+
+O fluxo de caixa permite:
+
+- entradas e saídas;
+- lançamentos manuais;
+- categorias financeiras;
+- contas pagas e pendentes;
+- filtros por período;
+- acompanhamento do saldo;
+- visualização de despesas por categoria.
+
+As vendas geram reflexos financeiros automaticamente conforme a forma de pagamento utilizada.
+
+### Comissões
+
+As comissões são vinculadas ao percentual configurado individualmente no cadastro de cada vendedor.
+
+A área financeira permite acompanhar:
+
+- comissão gerada;
+- comissão paga;
+- valores pendentes;
+- desempenho por vendedor.
+
+### Relatórios
+
+Área consolidada para análise da operação:
+
+- faturamento;
+- ticket médio;
+- estoque disponível;
+- forma de pagamento mais utilizada;
+- ranking de vendedores;
+- distribuição das formas de pagamento;
+- filtros por período.
+
+### Configurações
+
+Configurações do AutoSystem divididas conforme o nível de acesso.
+
+Administrador:
+
+- dados da concessionária;
+- preferências comerciais;
+- parâmetros financeiros;
+- conta pessoal;
+- alteração de senha;
+- tema da interface.
+
+Gerentes e vendedores possuem acesso apenas às configurações permitidas para seus perfis.
+
+### Autenticação e autorização
+
+O AutoSystem possui sistema de login com três perfis:
+
+- **Administrador**
+- **Gerente**
+- **Vendedor**
+
+Cada perfil possui permissões específicas de telas, dados e ações.
+
+O sistema também possui:
+
+- sessão do usuário;
+- logout;
+- alteração de dados da própria conta;
+- alteração de senha;
+- proteção de rotas;
+- menus adaptados ao perfil;
+- restrições de ações;
+- visualização de dados conforme o vendedor autenticado.
+
+> Atualmente a autenticação é executada no front-end e utiliza armazenamento local do navegador. Essa implementação é adequada para o protótipo acadêmico, mas deverá ser substituída por autenticação segura no back-end, com senhas armazenadas por hash.
+
+## Tecnologias
+
+### Front-end
+
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS v4
+- shadcn/ui
+- Radix UI
+- Lucide React
+- Recharts
+- Sonner
+
+### Back-end planejado
+
+- Java
+- Spring Boot
+- PostgreSQL
+
+O back-end ainda será implementado. Atualmente os dados utilizados pela aplicação são mantidos em memória no front-end.
 
 ## Estrutura
 
-```
+```text
 AutoSystem/
-  frontend/   SPA em React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui
-  backend/    API em Java + Spring Boot + PostgreSQL (a criar)
-  docs/       escopo, modelo de dados, regras, contrato de API e decisões de arquitetura
+├── frontend/    SPA em React + TypeScript + Vite
+├── backend/     API Java + Spring Boot + PostgreSQL (planejada)
+├── docs/        documentação técnica e decisões do projeto
+├── README.md
+└── CONTRIBUTING.md
 ```
 
 ## Rodar em desenvolvimento
 
-Pré-requisitos: Node 24 (`frontend/.node-version`), JDK 21, PostgreSQL.
+### Pré-requisitos
 
-Front-end (porta 5174):
+Para executar o front-end:
+
+- Node.js 24
+- npm
+
+Para o back-end futuro:
+
+- JDK 21
+- PostgreSQL
+
+### Front-end
 
 ```bash
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+npm run dev
 ```
 
-Back-end (porta 8080), quando existir:
+O servidor de desenvolvimento utiliza a porta:
 
-```bash
-cd backend && ./mvnw spring-boot:run
+```text
+http://localhost:5174
 ```
 
-O Vite faz proxy de `/api` para `http://localhost:8080`, então o front chama a API sem
-CORS. Sem back-end rodando, o front funciona com dados em memória.
+A navegação utiliza hash routing, por exemplo:
+
+```text
+#/visao-geral
+#/estoque
+#/vendas
+#/clientes
+#/funcionarios
+#/consorcios
+#/financiamentos
+#/financeiro
+#/relatorios
+#/configuracoes
+```
+
+## Dados durante o desenvolvimento
+
+Nesta etapa do projeto, os dados são controlados pelo front-end.
+
+Isso permite testar os fluxos do sistema antes da implementação definitiva da API.
+
+Algumas informações podem ser reinicializadas ao recarregar ou reiniciar o ambiente de desenvolvimento.
+
+A persistência definitiva será implementada posteriormente utilizando Spring Boot e PostgreSQL.
 
 ## Build de produção
 
 ```bash
-cd frontend && npm run build
+cd frontend
+npm run build
 ```
 
-Gera `frontend/dist/`. O Spring Boot serve esses arquivos como estáticos
-(`src/main/resources/static`) e expõe `/api/*` na mesma origem: um artefato, um processo.
-A navegação do front é por hash (`#/estoque`), então não precisa de fallback de rota.
+O build gera:
 
-## Contrato entre front e back
+```text
+frontend/dist/
+```
 
-- Endpoints, parâmetros, corpos e códigos de erro: [`docs/04-contrato-de-api.md`](docs/04-contrato-de-api.md)
-- Cliente HTTP tipado, um método por endpoint: [`frontend/src/api`](frontend/src/api)
-- Formato único de erro: `{ "erro": "mensagem", "campos": { "placa": "..." } }`
-- Dinheiro em string decimal (`"129900.00"`), datas em `yyyy-mm-dd`
+Na arquitetura planejada, o Spring Boot poderá servir os arquivos estáticos do front-end e disponibilizar a API através de `/api`.
+
+## Integração futura com o back-end
+
+O Vite está preparado para encaminhar requisições `/api` para:
+
+```text
+http://localhost:8080
+```
+
+A arquitetura prevista utiliza:
+
+```text
+React
+   ↓
+/api
+   ↓
+Spring Boot
+   ↓
+PostgreSQL
+```
+
+O contrato inicial da API está documentado em:
+
+`docs/04-contrato-de-api.md`
+
+Esse contrato poderá evoluir conforme os novos módulos implementados no front-end forem incorporados ao back-end.
+
+## Formatação de dados
+
+O projeto possui funções centralizadas para padronização e máscaras de dados, incluindo:
+
+- CPF;
+- telefone;
+- valores monetários;
+- datas;
+- percentuais.
+
+Para integração futura com a API:
+
+- valores monetários deverão utilizar representação decimal adequada;
+- datas deverão utilizar formato padronizado;
+- validações críticas também deverão existir no back-end.
+
+## Perfis de acesso
+
+| Recurso | Administrador | Gerente | Vendedor |
+|---|:---:|:---:|:---:|
+| Visão Geral | ✓ | ✓ | ✓ |
+| Estoque | Completo | Completo | Consulta |
+| Vendas | Todas | Todas | Próprias |
+| Clientes | ✓ | ✓ | ✓ |
+| Funcionários | Completo | Limitado | — |
+| Consórcios | Todos | Todos | Próprios |
+| Financiamentos | Todos | Todos | Próprios |
+| Gestão Financeira | ✓ | ✓ | — |
+| Relatórios | ✓ | ✓ | — |
+| Configurações administrativas | ✓ | — | — |
+| Minha conta | ✓ | ✓ | ✓ |
 
 ## Documentação
 
-| | |
+| Documento | Conteúdo |
 |---|---|
-| [Escopo da primeira entrega](docs/autosystem-escopo-primeira-entrega.md) | O que entra na sprint 1 |
-| [Modelo de dados](docs/02-modelo-de-dados.md) | Tabelas, tipos, restrições e DDL |
-| [Regras e cálculos](docs/03-regras-e-calculos.md) | Regras de negócio e fórmulas |
-| [Stack e arquitetura](docs/06-stack-e-arquitetura.md) | Comparativo e recomendação |
-| [Decisões arquiteturais](docs/07-decisoes-arquiteturais.md) | Pauta de decisões do monólito |
-| [Front-end](frontend/README.md) | Telas, design system, formulários |
-| [Como contribuir](CONTRIBUTING.md) | Fluxo de git, padrão de commit e checagens antes do PR |
+| `docs/01-inventario-funcional.md` | Inventário funcional do sistema |
+| `docs/02-modelo-de-dados.md` | Modelo de dados planejado |
+| `docs/03-regras-e-calculos.md` | Regras de negócio e cálculos |
+| `docs/04-contrato-de-api.md` | Contrato planejado entre front-end e back-end |
+| `docs/05-requisitos-nao-funcionais.md` | Requisitos não funcionais do projeto |
+| `docs/06-stack-e-arquitetura.md` | Stack tecnológica e arquitetura |
+| `docs/07-decisoes-arquiteturais.md` | Decisões arquiteturais |
+| `docs/08-decisao-stack-back-end.md` | Decisão da stack utilizada no back-end |
+| `docs/09-modelo-conceitual-mer.md` | Modelo conceitual e MER |
+| `docs/10-evolucao-funcional-frontend.md` | Evolução funcional implementada no front-end |
+| `docs/autosystem-escopo-primeira-entrega.md` | Escopo original da primeira entrega |
+| `frontend/README.md` | Informações específicas do front-end |
+| `CONTRIBUTING.md` | Fluxo de contribuição e padrões do repositório |
+
+## Estado atual do projeto
+
+O AutoSystem possui atualmente um protótipo funcional de front-end cobrindo os principais fluxos de uma concessionária.
+
+A próxima etapa técnica prevista é a implementação do back-end e da persistência dos dados.
+
+Antes disso, o front-end passará por uma etapa de evolução da identidade visual e experiência de uso, mantendo as regras e funcionalidades já implementadas.

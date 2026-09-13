@@ -1,7 +1,8 @@
-import { AlertTriangle, ArrowRight, Car, CircleDollarSign, Clock, Receipt, Tag, Wallet } from "lucide-react"
+import { AlertTriangle, ArrowRight, BadgePercent, Car, CircleDollarSign, Clock, Receipt, Tag, Wallet } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 import { useApp } from "@/app-context"
+import { useAuth } from "@/auth-context"
 import { KpiCard } from "@/components/kpi-card"
 import { StatusDot } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
@@ -55,12 +56,90 @@ function TooltipGrafico({ active, payload }: PontoTooltip) {
 
 export function VisaoGeralPage() {
   useEstado()
+  const { usuario } = useAuth()
   const { navegar, setNovoVeiculo, setVenda, setVendaVeiculoId } = useApp()
 
+  const primeiroNome = usuario?.nome.trim().split(/\s+/)[0] || "Usuário"
+  const podeGerenciarEstoque =
+    usuario?.perfil === "admin" || usuario?.perfil === "gerente"
+  const vendedor = usuario?.perfil === "vendedor"
+
+  const funcionarioVendedor =
+    vendedor && usuario?.funcionarioId !== null
+      ? store.obterFuncionario(usuario?.funcionarioId ?? -1)
+      : vendedor
+        ? store.obterFuncionarioPorNome(usuario?.nome ?? "")
+        : null
+
+  const taxaComissaoVendedor =
+    funcionarioVendedor?.cargo === "vendedor"
+      ? funcionarioVendedor.comissao
+      : 0
+
   const ind = store.indicadores()
-  const meses = store.faturamentoPorMes()
+  const todasVendas = store.listarVendas()
+  const vendasVisiveis = vendedor
+    ? todasVendas.filter(
+        (venda) =>
+          venda.vendedor.trim().toLocaleLowerCase("pt-BR") ===
+          usuario?.nome.trim().toLocaleLowerCase("pt-BR")
+      )
+    : todasVendas
+
+  const agora = new Date()
+  const inicioMesAtual = new Date(agora.getFullYear(), agora.getMonth(), 1)
+  const inicioMesAnterior = new Date(agora.getFullYear(), agora.getMonth() - 1, 1)
+  const fimMesAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0)
+
+  const vendasMesAtual = vendasVisiveis.filter((venda) => {
+    const data = new Date(`${venda.data_venda}T12:00:00`)
+    return data >= inicioMesAtual && data <= agora
+  })
+
+  const vendasMesAnterior = vendasVisiveis.filter((venda) => {
+    const data = new Date(`${venda.data_venda}T12:00:00`)
+    return data >= inicioMesAnterior && data <= fimMesAnterior
+  })
+
+  const faturamentoMesAtual = vendasMesAtual.reduce(
+    (total, venda) => total + venda.valor_venda,
+    0
+  )
+  const faturamentoMesAnterior = vendasMesAnterior.reduce(
+    (total, venda) => total + venda.valor_venda,
+    0
+  )
+
+  const comissaoMesAtual =
+    faturamentoMesAtual * (taxaComissaoVendedor / 100)
+
+  const comissaoMesAnterior =
+    faturamentoMesAnterior * (taxaComissaoVendedor / 100)
+
+  const meses = vendedor
+    ? Array.from({ length: 6 }, (_, indice) => {
+        const data = new Date(agora.getFullYear(), agora.getMonth() - (5 - indice), 1)
+        const ano = data.getFullYear()
+        const mes = data.getMonth()
+
+        const vendasDoMes = vendasVisiveis.filter((venda) => {
+          const dataVenda = new Date(`${venda.data_venda}T12:00:00`)
+          return dataVenda.getFullYear() === ano && dataVenda.getMonth() === mes
+        })
+
+        return {
+          rotulo: data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+          vendas: vendasDoMes.length,
+          faturamento: vendasDoMes.reduce(
+            (total, venda) => total + venda.valor_venda,
+            0
+          ),
+        }
+      })
+    : store.faturamentoPorMes()
+
   const porMarca = store.estoquePorMarca()
-  const ultimas = store.listarVendas().slice(0, 5)
+  const ultimas = vendasVisiveis.slice(0, 5)
   const veiculos = store.listarVeiculos()
   const emEstoque = veiculos.filter((v) => v.status !== "vendido")
 
@@ -90,7 +169,7 @@ export function VisaoGeralPage() {
           <p className="text-muted-foreground text-[13px] first-letter:uppercase">
             {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
           </p>
-          <h2 className="text-[22px] font-semibold tracking-[-0.02em]">Bom dia, Pedro</h2>
+          <h2 className="text-[22px] font-semibold tracking-[-0.02em]">Bom dia, {primeiroNome}</h2>
         </div>
         <div className="flex gap-2">
           <Button
@@ -105,21 +184,23 @@ export function VisaoGeralPage() {
             <Receipt className="size-4" />
             Registrar venda
           </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              navegar("estoque")
-              setNovoVeiculo(true)
-            }}
-          >
-            <Car className="size-4" />
-            Cadastrar veículo
-          </Button>
+          {podeGerenciarEstoque && (
+            <Button
+              size="sm"
+              onClick={() => {
+                navegar("estoque")
+                setNovoVeiculo(true)
+              }}
+            >
+              <Car className="size-4" />
+              Cadastrar veículo
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Os quatro indicadores do escopo */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Indicadores conforme o perfil */}
+      <div className={cn("grid gap-3 sm:grid-cols-2", vendedor ? "xl:grid-cols-5" : "xl:grid-cols-4")}>
         <KpiCard
           rotulo="Veículos em estoque"
           valor={ind.veiculosEmEstoque}
@@ -127,35 +208,109 @@ export function VisaoGeralPage() {
           tom="primary"
           detalhe={`${ind.disponiveis} disponíveis · ${ind.reservados} reservados`}
         />
-        <KpiCard
-          rotulo="Valor em estoque"
-          valor={moedaCompacta(ind.valorEstoque)}
-          icone={Wallet}
-          tom="neutral"
-          detalhe={`${moedaCurta(ind.veiculosEmEstoque ? ind.valorEstoque / ind.veiculosEmEstoque : 0)} por veículo`}
-        />
-        <KpiCard
-          rotulo={`Vendas em ${mesAtual}`}
-          valor={ind.vendasNoMes}
-          icone={Receipt}
-          tom="success"
-          tendencia={{ valor: variacao(ind.vendasNoMes, ind.vendasMesAnterior), rotulo: "vs. mês anterior" }}
-          detalhe={`${ind.vendasMesAnterior} no mês anterior`}
-        />
-        <KpiCard
-          rotulo="Faturamento do mês"
-          valor={moedaCompacta(ind.faturamentoMes)}
-          icone={CircleDollarSign}
-          tom="success"
-          tendencia={{ valor: variacao(ind.faturamentoMes, ind.faturamentoMesAnterior), rotulo: "vs. mês anterior" }}
-          detalhe={`${moedaCurta(ind.faturamentoMesAnterior)} no mês anterior`}
-        />
+
+        {vendedor ? (
+          <KpiCard
+            rotulo={`Minhas vendas em ${mesAtual}`}
+            valor={vendasMesAtual.length}
+            icone={Receipt}
+            tom="success"
+            tendencia={{
+              valor: variacao(vendasMesAtual.length, vendasMesAnterior.length),
+              rotulo: "vs. mês anterior",
+            }}
+            detalhe={`${vendasMesAnterior.length} no mês anterior`}
+          />
+        ) : (
+          <KpiCard
+            rotulo="Valor em estoque"
+            valor={moedaCompacta(ind.valorEstoque)}
+            icone={Wallet}
+            tom="neutral"
+            detalhe={`${moedaCurta(
+              ind.veiculosEmEstoque ? ind.valorEstoque / ind.veiculosEmEstoque : 0
+            )} por veículo`}
+          />
+        )}
+
+        {vendedor ? (
+          <KpiCard
+            rotulo="Meu faturamento no mês"
+            valor={moedaCompacta(faturamentoMesAtual)}
+            icone={CircleDollarSign}
+            tom="success"
+            tendencia={{
+              valor: variacao(faturamentoMesAtual, faturamentoMesAnterior),
+              rotulo: "vs. mês anterior",
+            }}
+            detalhe={`${moedaCurta(faturamentoMesAnterior)} no mês anterior`}
+          />
+        ) : (
+          <KpiCard
+            rotulo={`Vendas em ${mesAtual}`}
+            valor={ind.vendasNoMes}
+            icone={Receipt}
+            tom="success"
+            tendencia={{
+              valor: variacao(ind.vendasNoMes, ind.vendasMesAnterior),
+              rotulo: "vs. mês anterior",
+            }}
+            detalhe={`${ind.vendasMesAnterior} no mês anterior`}
+          />
+        )}
+
+        {vendedor ? (
+          <KpiCard
+            rotulo="Meu ticket médio"
+            valor={
+              vendasMesAtual.length
+                ? moedaCompacta(faturamentoMesAtual / vendasMesAtual.length)
+                : "—"
+            }
+            icone={Wallet}
+            tom="neutral"
+            detalhe="Valor médio das minhas vendas"
+          />
+        ) : (
+          <KpiCard
+            rotulo="Faturamento do mês"
+            valor={moedaCompacta(ind.faturamentoMes)}
+            icone={CircleDollarSign}
+            tom="success"
+            tendencia={{
+              valor: variacao(ind.faturamentoMes, ind.faturamentoMesAnterior),
+              rotulo: "vs. mês anterior",
+            }}
+            detalhe={`${moedaCurta(ind.faturamentoMesAnterior)} no mês anterior`}
+          />
+        )}
+
+        {vendedor && (
+          <KpiCard
+            rotulo="Minha comissão no mês"
+            valor={moedaCompacta(comissaoMesAtual)}
+            icone={BadgePercent}
+            tom="warning"
+            tendencia={{
+              valor: variacao(comissaoMesAtual, comissaoMesAnterior),
+              rotulo: "vs. mês anterior",
+            }}
+            detalhe={
+              taxaComissaoVendedor > 0
+                ? `Taxa cadastrada de ${taxaComissaoVendedor.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 2,
+                  })}%`
+                : "Comissão não configurada"
+            }
+          />
+        )}
       </div>
 
       <div className="grid gap-3 xl:grid-cols-3">
         {/* Gráfico de faturamento */}
         <Painel
-          titulo="Faturamento nos últimos 6 meses"
+          titulo={vendedor ? "Meu faturamento nos últimos 6 meses" : "Faturamento nos últimos 6 meses"}
           className="xl:col-span-2"
           acao={
             <span className="text-muted-foreground tabular text-[12px]">
@@ -245,11 +400,20 @@ export function VisaoGeralPage() {
                     <div className="flex items-baseline justify-between">
                       <span>{m.marca}</span>
                       <span className="tabular text-muted-foreground">
-                        {m.quantidade} · {moedaCurta(m.valor)}
+                        {vendedor ? `${m.quantidade} veículos` : `${m.quantidade} · ${moedaCurta(m.valor)}`}
                       </span>
                     </div>
                     <div className="bg-secondary mt-1 h-1.5 overflow-hidden rounded-full">
-                      <div className="bg-primary/70 h-full rounded-full" style={{ width: `${(m.valor / maxMarca) * 100}%` }} />
+                      <div
+                        className="bg-primary/70 h-full rounded-full"
+                        style={{
+                          width: `${vendedor
+                            ? (m.quantidade /
+                                Math.max(...porMarca.map((item) => item.quantidade), 1)) *
+                              100
+                            : (m.valor / maxMarca) * 100}%`,
+                        }}
+                      />
                     </div>
                   </li>
                 ))}
@@ -262,7 +426,7 @@ export function VisaoGeralPage() {
       <div className="grid gap-3 xl:grid-cols-2">
         {/* Últimas vendas */}
         <Painel
-          titulo="Últimas vendas"
+          titulo={vendedor ? "Minhas últimas vendas" : "Últimas vendas"}
           acao={
             <Button variant="ghost" size="xs" className="text-muted-foreground -mr-1.5" onClick={() => navegar("vendas")}>
               Ver histórico
@@ -331,7 +495,11 @@ export function VisaoGeralPage() {
                     </p>
                     <p className="text-muted-foreground truncate text-[12px]">{texto}</p>
                   </div>
-                  <span className="tabular text-muted-foreground text-[12.5px]">{moedaCurta(v.preco)}</span>
+                  {!vendedor && (
+                    <span className="tabular text-muted-foreground text-[12.5px]">
+                      {moedaCurta(v.preco)}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

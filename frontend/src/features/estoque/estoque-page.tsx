@@ -6,6 +6,7 @@ import {
   Car,
   ChevronDown,
   Columns3,
+  Eye,
   Filter,
   MoreHorizontal,
   Pencil,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react"
 
 import { useApp } from "@/app-context"
+import { useAuth } from "@/auth-context"
 import { EmptyState } from "@/components/empty-state"
 import { Segmented } from "@/components/segmented"
 import { StatusBadge } from "@/components/status-badge"
@@ -62,6 +64,7 @@ import { cn } from "@/lib/utils"
 
 import { ExcluirDialog } from "./excluir-dialog"
 import { QuadroView } from "./quadro-view"
+import { VeiculoDetalhesSheet } from "./veiculo-detalhes-sheet"
 import { VeiculoSheet } from "./veiculo-sheet"
 
 type Visao = "tabela" | "quadro"
@@ -241,12 +244,16 @@ function CabecalhoOrdenavel({
 
 export function EstoquePage() {
   useEstado()
+  const { usuario } = useAuth()
   const { novoVeiculo, setNovoVeiculo, buscaEstoque, setBuscaEstoque, setVenda, setVendaVeiculoId } = useApp()
+
+  const podeGerenciarEstoque = usuario?.perfil === "admin" || usuario?.perfil === "gerente"
 
   const [filtros, setFiltros] = useState<Filtros>(filtrosVazios)
   const [visao, setVisao] = useState<Visao>("tabela")
   const [ordem, setOrdem] = useState<Ordem>({ chave: "dias", dir: "asc" })
   const [editando, setEditando] = useState<Veiculo | null>(null)
+  const [visualizando, setVisualizando] = useState<Veiculo | null>(null)
   const [excluindo, setExcluindo] = useState<Veiculo | null>(null)
   const [statusNovo, setStatusNovo] = useState<Status>("disponivel")
 
@@ -281,7 +288,7 @@ export function EstoquePage() {
     setVenda(true)
   }
 
-  const sheetAberto = novoVeiculo || editando !== null
+  const sheetAberto = podeGerenciarEstoque && (novoVeiculo || editando !== null)
   const fecharSheet = (v: boolean) => {
     if (!v) {
       setNovoVeiculo(false)
@@ -398,12 +405,12 @@ export function EstoquePage() {
                 <Button variant="outline" size="sm" onClick={() => setFiltros(filtrosVazios)}>
                   Limpar filtros
                 </Button>
-              ) : (
+              ) : podeGerenciarEstoque ? (
                 <Button size="sm" onClick={() => setNovoVeiculo(true)}>
                   <Plus className="size-4" />
                   Cadastrar veículo
                 </Button>
-              )
+              ) : undefined
             }
           />
         </div>
@@ -411,11 +418,27 @@ export function EstoquePage() {
         <QuadroView
           veiculos={lista}
           onNovo={(s) => {
+            if (!podeGerenciarEstoque) {
+              return
+            }
+
             setStatusNovo(s)
             setNovoVeiculo(true)
           }}
-          onEditar={setEditando}
-          onExcluir={setExcluindo}
+          onEditar={(veiculo) => {
+            if (!podeGerenciarEstoque) {
+              return
+            }
+
+            setEditando(veiculo)
+          }}
+          onExcluir={(veiculo) => {
+            if (!podeGerenciarEstoque) {
+              return
+            }
+
+            setExcluindo(veiculo)
+          }}
           onVender={vender}
         />
       ) : (
@@ -454,7 +477,7 @@ export function EstoquePage() {
                     <TableRow
                       key={v.id}
                       className="group cursor-default"
-                      onDoubleClick={() => setEditando(v)}
+                      onDoubleClick={() => podeGerenciarEstoque && setEditando(v)}
                     >
                       <TableCell className="py-2.5 pl-4">
                         <div className="flex items-center gap-3">
@@ -497,22 +520,39 @@ export function EstoquePage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="glass shadow-pop min-w-44">
+                          <DropdownMenuItem onClick={() => setVisualizando(v)}>
+                            <Eye />
+                            Visualizar detalhes
+                          </DropdownMenuItem>
+
+                          {podeGerenciarEstoque && (
                             <DropdownMenuItem onClick={() => setEditando(v)}>
                               <Pencil />
                               Editar
                             </DropdownMenuItem>
-                            {v.status !== "vendido" && (
-                              <DropdownMenuItem onClick={() => vender(v)}>
-                                <Receipt />
-                                Registrar venda
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem variant="destructive" onClick={() => setExcluindo(v)}>
-                              <Trash2 />
-                              Excluir
+                          )}
+
+                          {v.status !== "vendido" && (
+                            <DropdownMenuItem onClick={() => vender(v)}>
+                              <Receipt />
+                              Registrar venda
                             </DropdownMenuItem>
-                          </DropdownMenuContent>
+                          )}
+
+                          {podeGerenciarEstoque && (
+                            <>
+                              <DropdownMenuSeparator />
+
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setExcluindo(v)}
+                              >
+                                <Trash2 />
+                                Excluir
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
@@ -522,7 +562,11 @@ export function EstoquePage() {
             </Table>
           </div>
           <div className="text-muted-foreground flex items-center justify-between border-t px-4 py-2 text-[12px]">
-            <span>Clique duas vezes em uma linha para editar.</span>
+            <span>
+              {podeGerenciarEstoque
+                ? "Clique duas vezes em uma linha para editar."
+                : "Consulte os veículos disponíveis e registre vendas."}
+            </span>
             <span>
               {Object.entries(ROTULO_STATUS).map(([s, r]) => (
                 <span key={s} className="ml-3">
@@ -534,13 +578,47 @@ export function EstoquePage() {
         </div>
       )}
 
-      <VeiculoSheet
-        aberto={sheetAberto}
-        onOpenChange={fecharSheet}
-        veiculo={editando}
-        statusInicial={statusNovo}
+      {podeGerenciarEstoque && (
+        <VeiculoSheet
+          aberto={sheetAberto}
+          onOpenChange={fecharSheet}
+          veiculo={editando}
+          statusInicial={statusNovo}
+        />
+      )}
+
+      <VeiculoDetalhesSheet
+        aberto={visualizando !== null}
+        onOpenChange={(aberto) => {
+          if (!aberto) {
+            setVisualizando(null)
+          }
+        }}
+        veiculo={visualizando}
+        onEditar={
+          podeGerenciarEstoque
+            ? (veiculo) => {
+                setVisualizando(null)
+                setEditando(veiculo)
+              }
+            : undefined
+        }
+        onRegistrarVenda={(veiculo) => {
+          setVisualizando(null)
+          vender(veiculo)
+        }}
       />
-      <ExcluirDialog veiculo={excluindo} onOpenChange={(a) => !a && setExcluindo(null)} />
+
+      {podeGerenciarEstoque && (
+        <ExcluirDialog
+          veiculo={excluindo}
+          onOpenChange={(aberto) => {
+            if (!aberto) {
+              setExcluindo(null)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -8,13 +8,30 @@ import { useSyncExternalStore } from "react"
 
 export type Status = "disponivel" | "reservado" | "vendido"
 
+export type Combustivel =
+  | "gasolina"
+  | "etanol"
+  | "flex"
+  | "diesel"
+  | "hibrido"
+  | "eletrico"
+
+export type Cambio =
+  | "manual"
+  | "automatico"
+  | "automatizado"
+  | "cvt"
+
 export type Veiculo = {
   id: number
   marca: string
   modelo: string
+  versao?: string
   ano: number
   cor: string
   quilometragem: number
+  combustivel?: Combustivel
+  cambio?: Cambio
   preco: number
   placa: string
   status: Status
@@ -31,6 +48,40 @@ export type Cliente = {
   criado_em: string
 }
 
+export type StatusFuncionario = "ativo" | "inativo"
+
+export type CargoFuncionario =
+  | "gerente"
+  | "vendedor"
+  | "financeiro"
+  | "administrativo"
+  | "mecanico"
+
+export type Funcionario = {
+  id: number
+  nome: string
+  cpf: string
+  telefone: string
+  email: string
+  cargo: CargoFuncionario
+  comissao: number
+  status: StatusFuncionario
+  data_admissao: string
+}
+
+export const ROTULO_CARGO: Record<CargoFuncionario, string> = {
+  gerente: "Gerente",
+  vendedor: "Vendedor(a)",
+  financeiro: "Financeiro",
+  administrativo: "Administrativo",
+  mecanico: "Mecânico",
+}
+
+export type TipoPagamentoVenda =
+  | "avista"
+  | "financiamento"
+  | "consorcio"
+
 export type Venda = {
   id: number
   veiculo_id: number
@@ -38,6 +89,9 @@ export type Venda = {
   vendedor: string
   valor_venda: number
   data_venda: string // yyyy-mm-dd
+  forma_pagamento: TipoPagamentoVenda
+  financiamento_id: number | null
+  consorcio_id: number | null
 }
 
 /* ---------------------------------------------------------------------------
@@ -56,7 +110,7 @@ export type CategoriaLancamento =
   | "impostos"
   | "financiamento"
   | "outros"
-export type FormaPagamento = "pix" | "transferencia" | "boleto" | "cartao" | "dinheiro" | "financiamento"
+export type FormaPagamento = "pix" | "transferencia" | "boleto" | "cartao" | "dinheiro" | "financiamento" | "consorcio"
 
 export type Lancamento = {
   id: number
@@ -74,18 +128,174 @@ export type Lancamento = {
   vendedor: string | null
 }
 
+export type StatusFinanciamento =
+  | "em_analise"
+  | "aprovado"
+  | "ativo"
+  | "quitado"
+  | "cancelado"
+
 export type Financiamento = {
   id: number
   cliente_id: number
   veiculo_id: number
+  vendedor: string | null
   banco: string
-  valor_financiado: number
+  valor_veiculo: number
   entrada: number
+  valor_financiado: number
   parcelas: number
   taxa_mensal: number // 0.0189 = 1,89% a.m.
   valor_parcela: number
+  valor_total_financiamento: number
   inicio: string // yyyy-mm-dd da primeira parcela
   parcelas_pagas: number
+  status: StatusFinanciamento
+}
+
+export type NovoFinanciamentoVenda = {
+  banco: string
+  valor_veiculo: number
+  entrada: number
+  parcelas: number
+  taxa_mensal: number
+  inicio: string
+}
+
+export type StatusConsorcio =
+  | "em_analise"
+  | "ativo"
+  | "contemplado"
+  | "cancelado"
+  | "encerrado"
+
+export type TipoLanceConsorcio =
+  | "sem_lance"
+  | "livre"
+  | "fixo"
+
+export type Consorcio = {
+  id: number
+  numero_cota: number
+  cliente_id: number
+  vendedor: string
+  administradora: string
+  grupo: string
+  valor_carta: number
+  taxa_administracao?: number
+  fundo_reserva?: number
+  seguro?: number
+  valor_total_plano?: number
+  parcelas: number
+  valor_parcela: number
+  data_adesao: string
+  status: StatusConsorcio
+  tipo_lance: TipoLanceConsorcio
+  valor_lance: number | null
+  veiculo_id: number | null
+}
+
+export type GrupoConsorcio = {
+  codigo: string
+  descricao: string
+  limite_carta: number
+  taxa_administracao: number
+  fundo_reserva: number
+  seguro: number
+}
+
+export const GRUPOS_CONSORCIO: GrupoConsorcio[] = [
+  {
+    codigo: "GRP-2026-01",
+    descricao: "Automóveis até R$ 80 mil",
+    limite_carta: 80000,
+    taxa_administracao: 16,
+    fundo_reserva: 2,
+    seguro: 0,
+  },
+  {
+    codigo: "GRP-2026-02",
+    descricao: "Automóveis até R$ 120 mil",
+    limite_carta: 120000,
+    taxa_administracao: 17,
+    fundo_reserva: 2,
+    seguro: 0,
+  },
+  {
+    codigo: "GRP-2026-03",
+    descricao: "Automóveis até R$ 160 mil",
+    limite_carta: 160000,
+    taxa_administracao: 18,
+    fundo_reserva: 2,
+    seguro: 0,
+  },
+  {
+    codigo: "GRP-2026-04",
+    descricao: "Automóveis até R$ 220 mil",
+    limite_carta: 220000,
+    taxa_administracao: 19,
+    fundo_reserva: 2,
+    seguro: 0,
+  },
+  {
+    codigo: "GRP-2026-05",
+    descricao: "Automóveis Premium",
+    limite_carta: 400000,
+    taxa_administracao: 20,
+    fundo_reserva: 2,
+    seguro: 0,
+  },
+]
+
+export function calcularPlanoConsorcio(
+  valorCarta: number,
+  taxaAdministracao: number,
+  fundoReserva: number,
+  seguro: number,
+  parcelas: number
+) {
+  const taxaAdministracaoValor =
+    valorCarta * (taxaAdministracao / 100)
+  const fundoReservaValor =
+    valorCarta * (fundoReserva / 100)
+  const seguroValor =
+    valorCarta * (seguro / 100)
+
+  const valorTotalPlano =
+    valorCarta +
+    taxaAdministracaoValor +
+    fundoReservaValor +
+    seguroValor
+
+  const valorParcela =
+    parcelas > 0 ? valorTotalPlano / parcelas : 0
+
+  return {
+    taxa_administracao_valor:
+      Math.round(taxaAdministracaoValor * 100) / 100,
+    fundo_reserva_valor:
+      Math.round(fundoReservaValor * 100) / 100,
+    seguro_valor:
+      Math.round(seguroValor * 100) / 100,
+    valor_total_plano:
+      Math.round(valorTotalPlano * 100) / 100,
+    valor_parcela:
+      Math.round(valorParcela * 100) / 100,
+  }
+}
+
+export const ROTULO_STATUS_CONSORCIO: Record<StatusConsorcio, string> = {
+  em_analise: "Em análise",
+  ativo: "Ativo",
+  contemplado: "Contemplado",
+  cancelado: "Cancelado",
+  encerrado: "Encerrado",
+}
+
+export const ROTULO_TIPO_LANCE: Record<TipoLanceConsorcio, string> = {
+  sem_lance: "Sem lance",
+  livre: "Lance livre",
+  fixo: "Lance fixo",
 }
 
 export const ROTULO_CATEGORIA: Record<CategoriaLancamento, string> = {
@@ -107,12 +317,37 @@ export const ROTULO_FORMA: Record<FormaPagamento, string> = {
   cartao: "Cartão",
   dinheiro: "Dinheiro",
   financiamento: "Financiamento",
+  consorcio: "Consórcio",
 }
 
-export const BANCOS = ["Banco do Brasil", "Bradesco", "Itaú", "Santander", "Caixa", "BV Financeira"]
+export const BANCOS = [
+  "Banco do Brasil",
+  "Bradesco",
+  "Itaú",
+  "Santander",
+  "Caixa",
+  "BV Financeira",
+]
 
-/** Percentual de comissão sobre o valor da venda. Fixo nesta entrega. */
-export const COMISSAO_PERCENTUAL = 0.015
+export const PARCELAS_FINANCIAMENTO = [
+  12,
+  24,
+  36,
+  48,
+  60,
+  72,
+] as const
+
+export const ROTULO_STATUS_FINANCIAMENTO: Record<
+  StatusFinanciamento,
+  string
+> = {
+  em_analise: "Em análise",
+  aprovado: "Aprovado",
+  ativo: "Ativo",
+  quitado: "Quitado",
+  cancelado: "Cancelado",
+}
 
 export const ROTULO_STATUS: Record<Status, string> = {
   disponivel: "Disponível",
@@ -122,7 +357,10 @@ export const ROTULO_STATUS: Record<Status, string> = {
 
 export const ORDEM_STATUS: Status[] = ["disponivel", "reservado", "vendido"]
 
-/** Vendedores da loja. Texto livre no escopo; a lista serve só de sugestão. */
+/**
+ * Lista legada mantida temporariamente para compatibilidade com componentes
+ * que ainda serão migrados para store.vendedoresAtivos().
+ */
 export const VENDEDORES = ["Patrícia Gomes", "Alan Ferreira", "Beatriz Ramos", "Caio Monteiro"]
 
 function diasAtras(n: number) {
@@ -147,9 +385,11 @@ function mesAtras(n: number, dia: number) {
 type Estado = {
   veiculos: Veiculo[]
   clientes: Cliente[]
+  funcionarios: Funcionario[]
   vendas: Venda[]
   lancamentos: Lancamento[]
   financiamentos: Financiamento[]
+  consorcios: Consorcio[]
 }
 
 /** Parcela pela Tabela Price. */
@@ -159,7 +399,24 @@ export function parcelaPrice(principal: number, taxaMensal: number, n: number) {
   return (principal * taxaMensal) / (1 - Math.pow(1 + taxaMensal, -n))
 }
 
-function seedFinanceiro(vendas: Venda[], veiculos: Veiculo[]): { lancamentos: Lancamento[]; financiamentos: Financiamento[] } {
+function taxaComissaoDoVendedor(
+  vendedor: string,
+  funcionarios: Funcionario[]
+) {
+  const funcionario = funcionarios.find(
+    (f) =>
+      f.nome === vendedor &&
+      f.cargo === "vendedor"
+  )
+
+  return funcionario ? funcionario.comissao / 100 : 0
+}
+
+function seedFinanceiro(
+  vendas: Venda[],
+  veiculos: Veiculo[],
+  funcionarios: Funcionario[]
+): { lancamentos: Lancamento[]; financiamentos: Financiamento[] } {
   const l: Omit<Lancamento, "id">[] = []
   const base = { forma: null, venda_id: null, veiculo_id: null, vendedor: null } as const
 
@@ -174,7 +431,12 @@ function seedFinanceiro(vendas: Venda[], veiculos: Veiculo[]): { lancamentos: La
       valor: v.valor_venda,
       data: v.data_venda,
       status: "pago",
-      forma: v.id === 1 ? "financiamento" : v.id === 4 ? "financiamento" : "pix",
+      forma:
+        v.forma_pagamento === "financiamento"
+          ? "financiamento"
+          : v.forma_pagamento === "consorcio"
+            ? "consorcio"
+            : "pix",
       venda_id: v.id,
       veiculo_id: v.veiculo_id,
     })
@@ -183,7 +445,12 @@ function seedFinanceiro(vendas: Venda[], veiculos: Veiculo[]): { lancamentos: La
       tipo: "saida",
       categoria: "comissao",
       descricao: `Comissão ${v.vendedor} · ${veic.marca} ${veic.modelo}`,
-      valor: Math.round(v.valor_venda * COMISSAO_PERCENTUAL),
+      valor:
+        Math.round(
+          v.valor_venda *
+            taxaComissaoDoVendedor(v.vendedor, funcionarios) *
+            100
+        ) / 100,
       data: fimDoMes(v.data_venda),
       status: v.id === 2 || v.id === 4 ? "pago" : "pendente",
       forma: v.id === 2 || v.id === 4 ? "pix" : null,
@@ -230,19 +497,112 @@ function seedFinanceiro(vendas: Venda[], veiculos: Veiculo[]): { lancamentos: La
   // Vendas com financiamento viram contratos; a loja recebe do banco, o cliente paga parcelas.
   const financiamentos: Financiamento[] = [
     (() => {
-      const valor = 109500 - 25000
+      const valorVeiculo = 109500
+      const entrada = 25000
+      const valorFinanciado = valorVeiculo - entrada
       const taxa = 0.0189
-      return { id: 1, cliente_id: 1, veiculo_id: 3, banco: "Itaú", valor_financiado: valor, entrada: 25000, parcelas: 48, taxa_mensal: taxa, valor_parcela: Math.round(parcelaPrice(valor, taxa, 48) * 100) / 100, inicio: mesAtras(0, 5), parcelas_pagas: 1 }
+      const parcelas = 48
+      const valorParcela =
+        Math.round(
+          parcelaPrice(
+            valorFinanciado,
+            taxa,
+            parcelas
+          ) * 100
+        ) / 100
+
+      return {
+        id: 1,
+        cliente_id: 1,
+        veiculo_id: 3,
+        vendedor: "Patrícia Gomes",
+        banco: "Itaú",
+        valor_veiculo: valorVeiculo,
+        entrada,
+        valor_financiado: valorFinanciado,
+        parcelas,
+        taxa_mensal: taxa,
+        valor_parcela: valorParcela,
+        valor_total_financiamento:
+          Math.round(
+            valorParcela * parcelas * 100
+          ) / 100,
+        inicio: mesAtras(0, 5),
+        parcelas_pagas: 1,
+        status: "ativo" as StatusFinanciamento,
+      }
     })(),
     (() => {
-      const valor = 101900 - 30000
+      const valorVeiculo = 101900
+      const entrada = 30000
+      const valorFinanciado = valorVeiculo - entrada
       const taxa = 0.0175
-      return { id: 2, cliente_id: 4, veiculo_id: 14, banco: "Banco do Brasil", valor_financiado: valor, entrada: 30000, parcelas: 36, taxa_mensal: taxa, valor_parcela: Math.round(parcelaPrice(valor, taxa, 36) * 100) / 100, inicio: mesAtras(3, 10), parcelas_pagas: 3 }
+      const parcelas = 36
+      const valorParcela =
+        Math.round(
+          parcelaPrice(
+            valorFinanciado,
+            taxa,
+            parcelas
+          ) * 100
+        ) / 100
+
+      return {
+        id: 2,
+        cliente_id: 4,
+        veiculo_id: 14,
+        vendedor: "Beatriz Ramos",
+        banco: "Banco do Brasil",
+        valor_veiculo: valorVeiculo,
+        entrada,
+        valor_financiado: valorFinanciado,
+        parcelas,
+        taxa_mensal: taxa,
+        valor_parcela: valorParcela,
+        valor_total_financiamento:
+          Math.round(
+            valorParcela * parcelas * 100
+          ) / 100,
+        inicio: mesAtras(3, 10),
+        parcelas_pagas: 3,
+        status: "ativo" as StatusFinanciamento,
+      }
     })(),
     (() => {
-      const valor = 51000 - 11000
+      const valorVeiculo = 51000
+      const entrada = 11000
+      const valorFinanciado = valorVeiculo - entrada
       const taxa = 0.021
-      return { id: 3, cliente_id: 2, veiculo_id: 6, banco: "BV Financeira", valor_financiado: valor, entrada: 11000, parcelas: 24, taxa_mensal: taxa, valor_parcela: Math.round(parcelaPrice(valor, taxa, 24) * 100) / 100, inicio: mesAtras(1, 15), parcelas_pagas: 1 }
+      const parcelas = 24
+      const valorParcela =
+        Math.round(
+          parcelaPrice(
+            valorFinanciado,
+            taxa,
+            parcelas
+          ) * 100
+        ) / 100
+
+      return {
+        id: 3,
+        cliente_id: 2,
+        veiculo_id: 6,
+        vendedor: "Alan Ferreira",
+        banco: "BV Financeira",
+        valor_veiculo: valorVeiculo,
+        entrada,
+        valor_financiado: valorFinanciado,
+        parcelas,
+        taxa_mensal: taxa,
+        valor_parcela: valorParcela,
+        valor_total_financiamento:
+          Math.round(
+            valorParcela * parcelas * 100
+          ) / 100,
+        inicio: mesAtras(1, 15),
+        parcelas_pagas: 1,
+        status: "ativo" as StatusFinanciamento,
+      }
     })(),
   ]
 
@@ -254,10 +614,65 @@ function seedFinanceiro(vendas: Venda[], veiculos: Veiculo[]): { lancamentos: La
 
 function seed(): Estado {
   const base = seedBase()
-  return { ...base, ...seedFinanceiro(base.vendas, base.veiculos) }
+
+  const consorcios: Consorcio[] = [
+    {
+      id: 1,
+      numero_cota: 18427,
+      cliente_id: 5,
+      vendedor: "Beatriz Ramos",
+      administradora: "AutoSystem Consórcios",
+      grupo: "GRP-2026-01",
+      valor_carta: 120000,
+      taxa_administracao: 17,
+      fundo_reserva: 2,
+      seguro: 0,
+      valor_total_plano: 142800,
+      parcelas: 80,
+      valor_parcela: 1785,
+      data_adesao: diasAtras(24),
+      status: "ativo",
+      tipo_lance: "sem_lance",
+      valor_lance: null,
+      veiculo_id: null,
+    },
+    {
+      id: 2,
+      numero_cota: 57361,
+      cliente_id: 3,
+      vendedor: "Patrícia Gomes",
+      administradora: "AutoSystem Consórcios",
+      grupo: "GRP-2026-02",
+      valor_carta: 150000,
+      taxa_administracao: 18,
+      fundo_reserva: 2,
+      seguro: 0,
+      valor_total_plano: 180000,
+      parcelas: 100,
+      valor_parcela: 1800,
+      data_adesao: diasAtras(47),
+      status: "contemplado",
+      tipo_lance: "livre",
+      valor_lance: 30000,
+      veiculo_id: 12,
+    },
+  ]
+
+  return {
+    ...base,
+    ...seedFinanceiro(
+      base.vendas,
+      base.veiculos,
+      base.funcionarios
+    ),
+    consorcios,
+  }
 }
 
-function seedBase(): Pick<Estado, "veiculos" | "clientes" | "vendas"> {
+function seedBase(): Pick<
+  Estado,
+  "veiculos" | "clientes" | "funcionarios" | "vendas"
+> {
   return {
     veiculos: [
       { id: 1, marca: "Honda", modelo: "Civic EXL", ano: 2021, cor: "Prata", quilometragem: 42300, preco: 129900, placa: "RKA2B31", status: "disponivel", criado_em: diasAtras(18) },
@@ -283,11 +698,97 @@ function seedBase(): Pick<Estado, "veiculos" | "clientes" | "vendas"> {
       { id: 4, nome: "Eduardo Tavares Melo", cpf: "271.008.554-90", telefone: "(11) 97455-1102", email: "eduardo.melo@email.com", criado_em: diasAtras(130) },
       { id: 5, nome: "Letícia Barbosa Faria", cpf: "633.410.782-15", telefone: "(21) 98771-0034", email: "leticia.faria@email.com", criado_em: diasAtras(8) },
     ],
+    funcionarios: [
+      {
+        id: 1,
+        nome: "Patrícia Gomes",
+        cpf: "123.456.789-10",
+        telefone: "(34) 99999-1001",
+        email: "patricia@autosystem.com.br",
+        cargo: "vendedor",
+        comissao: 1.5,
+        status: "ativo",
+        data_admissao: "2025-02-10",
+      },
+      {
+        id: 2,
+        nome: "Alan Ferreira",
+        cpf: "234.567.890-21",
+        telefone: "(34) 99999-1002",
+        email: "alan@autosystem.com.br",
+        cargo: "vendedor",
+        comissao: 1.8,
+        status: "ativo",
+        data_admissao: "2025-05-15",
+      },
+      {
+        id: 3,
+        nome: "Beatriz Ramos",
+        cpf: "345.678.901-32",
+        telefone: "(34) 99999-1003",
+        email: "beatriz@autosystem.com.br",
+        cargo: "vendedor",
+        comissao: 2,
+        status: "ativo",
+        data_admissao: "2026-01-08",
+      },
+      {
+        id: 4,
+        nome: "Caio Monteiro",
+        cpf: "456.789.012-43",
+        telefone: "(34) 99999-1004",
+        email: "caio@autosystem.com.br",
+        cargo: "vendedor",
+        comissao: 1.5,
+        status: "ativo",
+        data_admissao: "2026-03-20",
+      },
+    ],
     vendas: [
-      { id: 1, veiculo_id: 3, cliente_id: 1, vendedor: "Patrícia Gomes", valor_venda: 109500, data_venda: diasAtras(6) },
-      { id: 2, veiculo_id: 6, cliente_id: 2, vendedor: "Alan Ferreira", valor_venda: 51000, data_venda: diasAtras(38) },
-      { id: 3, veiculo_id: 10, cliente_id: 3, vendedor: "Patrícia Gomes", valor_venda: 117000, data_venda: diasAtras(2) },
-      { id: 4, veiculo_id: 14, cliente_id: 4, vendedor: "Beatriz Ramos", valor_venda: 101900, data_venda: diasAtras(95) },
+      {
+        id: 1,
+        veiculo_id: 3,
+        cliente_id: 1,
+        vendedor: "Patrícia Gomes",
+        valor_venda: 109500,
+        data_venda: diasAtras(6),
+        forma_pagamento: "financiamento",
+        financiamento_id: 1,
+        consorcio_id: null,
+      },
+      {
+        id: 2,
+        veiculo_id: 6,
+        cliente_id: 2,
+        vendedor: "Alan Ferreira",
+        valor_venda: 51000,
+        data_venda: diasAtras(38),
+        forma_pagamento: "avista",
+        financiamento_id: null,
+        consorcio_id: null,
+      },
+      {
+        id: 3,
+        veiculo_id: 10,
+        cliente_id: 3,
+        vendedor: "Patrícia Gomes",
+        valor_venda: 117000,
+        data_venda: diasAtras(2),
+        forma_pagamento: "avista",
+        financiamento_id: null,
+        consorcio_id: null,
+      },
+      {
+        id: 4,
+        veiculo_id: 14,
+        cliente_id: 4,
+        vendedor: "Beatriz Ramos",
+        valor_venda: 101900,
+        data_venda: diasAtras(95),
+        forma_pagamento: "financiamento",
+        financiamento_id: 2,
+        consorcio_id: null,
+      },
     ],
   }
 }
@@ -302,6 +803,26 @@ function emitir() {
 
 function proximoId(lista: { id: number }[]) {
   return lista.reduce((m, x) => Math.max(m, x.id), 0) + 1
+}
+
+function gerarNumeroCota(consorcios: Consorcio[]) {
+  const usadas = new Set(consorcios.map((c) => c.numero_cota))
+
+  for (let tentativa = 0; tentativa < 1000; tentativa++) {
+    const numero = Math.floor(10000 + Math.random() * 90000)
+
+    if (!usadas.has(numero)) {
+      return numero
+    }
+  }
+
+  for (let numero = 10000; numero <= 99999; numero++) {
+    if (!usadas.has(numero)) {
+      return numero
+    }
+  }
+
+  throw new Error("Não há números de cota disponíveis.")
 }
 
 function subscribe(f: () => void) {
@@ -394,20 +915,159 @@ export const store = {
     return estado.veiculos.filter((v) => v.status !== "vendido")
   },
 
-  /** Regras 1, 2 e 4. */
+  /** Regras 1, 2 e 4 + integração com forma de pagamento. */
   registrarVenda(dados: Omit<Venda, "id">): Venda | { erro: string } {
     const veiculo = estado.veiculos.find((v) => v.id === dados.veiculo_id)
     if (!veiculo) return { erro: "Veículo não encontrado." }
     if (veiculo.status === "vendido") return { erro: "Este veículo já foi vendido." }
 
-    const venda = { id: proximoId(estado.vendas), ...dados }
+    const vendedor = estado.funcionarios.find(
+      (f) =>
+        f.nome === dados.vendedor &&
+        f.cargo === "vendedor" &&
+        f.status === "ativo"
+    )
+
+    if (!vendedor) {
+      return { erro: "Selecione um vendedor ativo cadastrado." }
+    }
+
+    if (dados.forma_pagamento === "avista") {
+      if (dados.financiamento_id !== null || dados.consorcio_id !== null) {
+        return { erro: "Venda à vista não deve possuir financiamento ou consórcio vinculado." }
+      }
+    }
+
+    let financiamento: Financiamento | null = null
+
+    if (dados.forma_pagamento === "financiamento") {
+      if (dados.financiamento_id === null) {
+        return { erro: "Selecione o financiamento utilizado na venda." }
+      }
+
+      financiamento =
+        estado.financiamentos.find((f) => f.id === dados.financiamento_id) ?? null
+
+      if (!financiamento) {
+        return { erro: "Financiamento não encontrado." }
+      }
+
+      if (financiamento.cliente_id !== dados.cliente_id) {
+        return { erro: "O financiamento selecionado pertence a outro cliente." }
+      }
+
+      if (financiamento.veiculo_id !== dados.veiculo_id) {
+        return { erro: "O financiamento selecionado pertence a outro veículo." }
+      }
+
+      if (
+        financiamento.vendedor &&
+        financiamento.vendedor !== dados.vendedor
+      ) {
+        return {
+          erro: "Este financiamento está vinculado a outro vendedor.",
+        }
+      }
+
+      if (
+        financiamento.status !== "aprovado" &&
+        financiamento.status !== "ativo"
+      ) {
+        return {
+          erro: "O financiamento precisa estar aprovado ou ativo para concluir a venda.",
+        }
+      }
+
+      if (dados.consorcio_id !== null) {
+        return { erro: "Uma venda financiada não pode usar consórcio ao mesmo tempo." }
+      }
+    }
+
+    let consorcio: Consorcio | null = null
+
+    if (dados.forma_pagamento === "consorcio") {
+      if (dados.consorcio_id === null) {
+        return { erro: "Selecione a cota de consórcio utilizada na venda." }
+      }
+
+      consorcio =
+        estado.consorcios.find((c) => c.id === dados.consorcio_id) ?? null
+
+      if (!consorcio) {
+        return { erro: "Consórcio não encontrado." }
+      }
+
+      if (consorcio.cliente_id !== dados.cliente_id) {
+        return { erro: "A cota selecionada pertence a outro cliente." }
+      }
+
+      if (consorcio.status !== "contemplado") {
+        return { erro: "Somente uma cota contemplada pode ser utilizada na venda." }
+      }
+
+      if (
+        consorcio.veiculo_id !== null &&
+        consorcio.veiculo_id !== dados.veiculo_id
+      ) {
+        return { erro: "Esta cota já está vinculada a outro veículo." }
+      }
+
+      if (consorcio.valor_carta < dados.valor_venda) {
+        return {
+          erro: "O valor da carta de crédito é menor que o valor desta venda.",
+        }
+      }
+
+      if (dados.financiamento_id !== null) {
+        return { erro: "Uma venda por consórcio não pode usar financiamento ao mesmo tempo." }
+      }
+    }
+
+    const venda: Venda = {
+      id: proximoId(estado.vendas),
+      ...dados,
+    }
+
     estado.vendas = [...estado.vendas, venda]
+
     estado.veiculos = estado.veiculos.map((v) =>
       v.id === veiculo.id ? { ...v, status: "vendido" as Status } : v
     )
 
+    if (financiamento) {
+      estado.financiamentos = estado.financiamentos.map((f) =>
+        f.id === financiamento!.id
+          ? {
+              ...f,
+              vendedor: f.vendedor ?? venda.vendedor,
+              status: "ativo" as StatusFinanciamento,
+            }
+          : f
+      )
+    }
+
+    if (consorcio) {
+      estado.consorcios = estado.consorcios.map((c) =>
+        c.id === consorcio!.id
+          ? {
+              ...c,
+              veiculo_id: veiculo.id,
+              status: "encerrado" as StatusConsorcio,
+            }
+          : c
+      )
+    }
+
+    const formaLancamento: FormaPagamento =
+      venda.forma_pagamento === "financiamento"
+        ? "financiamento"
+        : venda.forma_pagamento === "consorcio"
+          ? "consorcio"
+          : "pix"
+
     // Financeiro: a venda vira entrada recebida e gera comissão a pagar.
     const idBase = proximoId(estado.lancamentos)
+
     estado.lancamentos = [
       {
         id: idBase,
@@ -417,7 +1077,7 @@ export const store = {
         valor: venda.valor_venda,
         data: venda.data_venda,
         status: "pago",
-        forma: "pix",
+        forma: formaLancamento,
         venda_id: venda.id,
         veiculo_id: veiculo.id,
         vendedor: null,
@@ -427,7 +1087,12 @@ export const store = {
         tipo: "saida",
         categoria: "comissao",
         descricao: `Comissão ${venda.vendedor} · ${veiculo.marca} ${veiculo.modelo}`,
-        valor: Math.round(venda.valor_venda * COMISSAO_PERCENTUAL),
+        valor:
+          Math.round(
+            venda.valor_venda *
+              (vendedor.comissao / 100) *
+              100
+          ) / 100,
         data: fimDoMes(venda.data_venda),
         status: "pendente",
         forma: null,
@@ -437,8 +1102,317 @@ export const store = {
       },
       ...estado.lancamentos,
     ]
+
     emitir()
     return venda
+  },
+
+  /**
+   * Conclui uma venda financiada criando o contrato e a venda em uma única
+   * operação. O contrato nasce ativo e fica vinculado à venda criada.
+   */
+  registrarVendaComNovoFinanciamento(
+    dadosVenda: Omit<
+      Venda,
+      "id" | "forma_pagamento" | "financiamento_id" | "consorcio_id"
+    >,
+    dadosFinanciamento: NovoFinanciamentoVenda
+  ): Venda | { erro: string } {
+    const veiculo = estado.veiculos.find(
+      (v) => v.id === dadosVenda.veiculo_id
+    )
+
+    if (!veiculo) {
+      return { erro: "Veículo não encontrado." }
+    }
+
+    if (veiculo.status === "vendido") {
+      return { erro: "Este veículo já foi vendido." }
+    }
+
+    const cliente = estado.clientes.find(
+      (c) => c.id === dadosVenda.cliente_id
+    )
+
+    if (!cliente) {
+      return { erro: "Cliente não encontrado." }
+    }
+
+    const vendedor = estado.funcionarios.find(
+      (f) =>
+        f.nome === dadosVenda.vendedor &&
+        f.cargo === "vendedor" &&
+        f.status === "ativo"
+    )
+
+    if (!vendedor) {
+      return {
+        erro: "Selecione um vendedor ativo cadastrado.",
+      }
+    }
+
+    if (dadosVenda.valor_venda <= 0) {
+      return {
+        erro: "O valor da venda deve ser maior que zero.",
+      }
+    }
+
+    if (!dadosFinanciamento.banco.trim()) {
+      return {
+        erro: "Selecione o banco do financiamento.",
+      }
+    }
+
+    if (dadosFinanciamento.valor_veiculo <= 0) {
+      return {
+        erro: "Informe um valor de veículo válido.",
+      }
+    }
+
+    if (
+      Math.abs(
+        dadosFinanciamento.valor_veiculo -
+          dadosVenda.valor_venda
+      ) > 0.01
+    ) {
+      return {
+        erro:
+          "O valor do veículo no financiamento deve ser igual ao valor negociado na venda.",
+      }
+    }
+
+    if (
+      dadosFinanciamento.entrada < 0 ||
+      dadosFinanciamento.entrada >=
+        dadosFinanciamento.valor_veiculo
+    ) {
+      return {
+        erro:
+          "A entrada deve ser menor que o valor do veículo.",
+      }
+    }
+
+    if (
+      !PARCELAS_FINANCIAMENTO.includes(
+        dadosFinanciamento.parcelas as
+          (typeof PARCELAS_FINANCIAMENTO)[number]
+      )
+    ) {
+      return {
+        erro:
+          "Selecione uma quantidade de parcelas válida.",
+      }
+    }
+
+    if (dadosFinanciamento.taxa_mensal < 0) {
+      return {
+        erro: "A taxa mensal não pode ser negativa.",
+      }
+    }
+
+    if (!dadosFinanciamento.inicio) {
+      return {
+        erro: "Informe a data da primeira parcela.",
+      }
+    }
+
+    const existente =
+      this.financiamentoDoVeiculo(
+        dadosVenda.veiculo_id
+      )
+
+    if (existente) {
+      return {
+        erro:
+          "Este veículo já possui um financiamento ativo.",
+      }
+    }
+
+    const valorFinanciado =
+      Math.round(
+        (dadosFinanciamento.valor_veiculo -
+          dadosFinanciamento.entrada) *
+          100
+      ) / 100
+
+    const valorParcela =
+      Math.round(
+        parcelaPrice(
+          valorFinanciado,
+          dadosFinanciamento.taxa_mensal,
+          dadosFinanciamento.parcelas
+        ) * 100
+      ) / 100
+
+    const financiamento: Financiamento = {
+      id: proximoId(estado.financiamentos),
+      cliente_id: dadosVenda.cliente_id,
+      veiculo_id: dadosVenda.veiculo_id,
+      vendedor: dadosVenda.vendedor,
+      banco: dadosFinanciamento.banco.trim(),
+      valor_veiculo:
+        dadosFinanciamento.valor_veiculo,
+      entrada: dadosFinanciamento.entrada,
+      valor_financiado: valorFinanciado,
+      parcelas: dadosFinanciamento.parcelas,
+      taxa_mensal:
+        dadosFinanciamento.taxa_mensal,
+      valor_parcela: valorParcela,
+      valor_total_financiamento:
+        Math.round(
+          valorParcela *
+            dadosFinanciamento.parcelas *
+            100
+        ) / 100,
+      inicio: dadosFinanciamento.inicio,
+      parcelas_pagas: 0,
+      status: "ativo",
+    }
+
+    const venda: Venda = {
+      id: proximoId(estado.vendas),
+      ...dadosVenda,
+      forma_pagamento: "financiamento",
+      financiamento_id: financiamento.id,
+      consorcio_id: null,
+    }
+
+    estado.financiamentos = [
+      financiamento,
+      ...estado.financiamentos,
+    ]
+
+    estado.vendas = [
+      ...estado.vendas,
+      venda,
+    ]
+
+    estado.veiculos = estado.veiculos.map((v) =>
+      v.id === veiculo.id
+        ? {
+            ...v,
+            status: "vendido" as Status,
+          }
+        : v
+    )
+
+    const idBase =
+      proximoId(estado.lancamentos)
+
+    estado.lancamentos = [
+      {
+        id: idBase,
+        tipo: "entrada",
+        categoria: "venda",
+        descricao: `Venda ${veiculo.marca} ${veiculo.modelo}`,
+        valor: venda.valor_venda,
+        data: venda.data_venda,
+        status: "pago",
+        forma: "financiamento",
+        venda_id: venda.id,
+        veiculo_id: veiculo.id,
+        vendedor: null,
+      },
+      {
+        id: idBase + 1,
+        tipo: "saida",
+        categoria: "comissao",
+        descricao: `Comissão ${venda.vendedor} · ${veiculo.marca} ${veiculo.modelo}`,
+        valor:
+          Math.round(
+            venda.valor_venda *
+              (vendedor.comissao / 100) *
+              100
+          ) / 100,
+        data: fimDoMes(venda.data_venda),
+        status: "pendente",
+        forma: null,
+        venda_id: venda.id,
+        veiculo_id: veiculo.id,
+        vendedor: venda.vendedor,
+      },
+      ...estado.lancamentos,
+    ]
+
+    emitir()
+    return venda
+  },
+
+  /* ------------------------------------------------------------------------
+     Funcionários
+     ------------------------------------------------------------------------ */
+
+  funcionarios() {
+    return [...estado.funcionarios].sort((a, b) =>
+      a.nome.localeCompare(b.nome, "pt-BR")
+    )
+  },
+
+  obterFuncionario(id: number) {
+    return estado.funcionarios.find((f) => f.id === id) ?? null
+  },
+
+  obterFuncionarioPorNome(nome: string) {
+    return estado.funcionarios.find((f) => f.nome === nome) ?? null
+  },
+
+  vendedoresAtivos() {
+    return estado.funcionarios
+      .filter(
+        (f) =>
+          f.cargo === "vendedor" &&
+          f.status === "ativo"
+      )
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+  },
+
+  cpfFuncionarioEmUso(cpf: string, ignorarId?: number) {
+    const normalizado = cpf.replace(/\D/g, "")
+
+    return estado.funcionarios.some(
+      (f) =>
+        f.id !== ignorarId &&
+        f.cpf.replace(/\D/g, "") === normalizado
+    )
+  },
+
+  criarFuncionario(dados: Omit<Funcionario, "id">) {
+    const funcionario: Funcionario = {
+      id: proximoId(estado.funcionarios),
+      ...dados,
+      comissao:
+        dados.cargo === "vendedor"
+          ? dados.comissao
+          : 0,
+    }
+
+    estado.funcionarios = [
+      ...estado.funcionarios,
+      funcionario,
+    ]
+
+    emitir()
+    return funcionario
+  },
+
+  atualizarFuncionario(
+    id: number,
+    dados: Omit<Funcionario, "id">
+  ) {
+    estado.funcionarios = estado.funcionarios.map((f) =>
+      f.id === id
+        ? {
+            ...f,
+            ...dados,
+            comissao:
+              dados.cargo === "vendedor"
+                ? dados.comissao
+                : 0,
+          }
+        : f
+    )
+
+    emitir()
   },
 
   listarVendas({ de = null, ate = null }: { de?: string | null; ate?: string | null } = {}) {
@@ -455,9 +1429,13 @@ export const store = {
     return estado.clientes.find((c) => c.id === id) ?? null
   },
 
-  cpfEmUso(cpf: string) {
+  cpfEmUso(cpf: string, ignorarId?: number) {
     const n = cpf.replace(/\D/g, "")
-    return estado.clientes.some((c) => c.cpf.replace(/\D/g, "") === n)
+    return estado.clientes.some(
+      (c) =>
+        c.id !== ignorarId &&
+        c.cpf.replace(/\D/g, "") === n
+    )
   },
 
   criarCliente(dados: Omit<Cliente, "id" | "criado_em">) {
@@ -469,6 +1447,33 @@ export const store = {
     estado.clientes = [...estado.clientes, cliente]
     emitir()
     return cliente
+  },
+
+  atualizarCliente(
+    id: number,
+    dados: Omit<Cliente, "id" | "criado_em">
+  ): Cliente | { erro: string } {
+    const atual = estado.clientes.find((c) => c.id === id)
+
+    if (!atual) {
+      return { erro: "Cliente não encontrado." }
+    }
+
+    if (this.cpfEmUso(dados.cpf, id)) {
+      return { erro: "Já existe um cliente com este CPF." }
+    }
+
+    const atualizado: Cliente = {
+      ...atual,
+      ...dados,
+    }
+
+    estado.clientes = estado.clientes.map((c) =>
+      c.id === id ? atualizado : c
+    )
+
+    emitir()
+    return atualizado
   },
 
   /** GET /api/indicadores. Regra 5: vendido não conta no estoque. */
@@ -696,26 +1701,342 @@ export const store = {
      ------------------------------------------------------------------------ */
 
   financiamentos() {
-    return [...estado.financiamentos].sort((a, b) => b.inicio.localeCompare(a.inicio))
+    return [...estado.financiamentos].sort(
+      (a, b) =>
+        b.inicio.localeCompare(a.inicio) ||
+        b.id - a.id
+    )
   },
 
-  criarFinanciamento(dados: Omit<Financiamento, "id" | "valor_parcela" | "parcelas_pagas">) {
-    const f: Financiamento = {
-      id: proximoId(estado.financiamentos),
-      valor_parcela: Math.round(parcelaPrice(dados.valor_financiado, dados.taxa_mensal, dados.parcelas) * 100) / 100,
-      parcelas_pagas: 0,
-      ...dados,
+  obterFinanciamento(id: number) {
+    return (
+      estado.financiamentos.find(
+        (f) => f.id === id
+      ) ?? null
+    )
+  },
+
+  financiamentoDoVeiculo(veiculoId: number) {
+    return (
+      estado.financiamentos.find(
+        (f) =>
+          f.veiculo_id === veiculoId &&
+          f.status !== "cancelado"
+      ) ?? null
+    )
+  },
+
+  criarFinanciamento(
+    dados: Omit<
+      Financiamento,
+      | "id"
+      | "valor_parcela"
+      | "valor_total_financiamento"
+      | "parcelas_pagas"
+      | "vendedor"
+    > & {
+      vendedor?: string | null
     }
-    estado.financiamentos = [f, ...estado.financiamentos]
+  ): Financiamento | { erro: string } {
+    if (dados.valor_veiculo <= 0) {
+      return {
+        erro: "Informe um valor de veículo válido.",
+      }
+    }
+
+    if (
+      dados.entrada < 0 ||
+      dados.entrada >= dados.valor_veiculo
+    ) {
+      return {
+        erro:
+          "A entrada deve ser menor que o valor do veículo.",
+      }
+    }
+
+    if (dados.valor_financiado <= 0) {
+      return {
+        erro:
+          "O valor financiado deve ser maior que zero.",
+      }
+    }
+
+    if (
+      Math.abs(
+        dados.valor_financiado -
+          (dados.valor_veiculo -
+            dados.entrada)
+      ) > 0.01
+    ) {
+      return {
+        erro:
+          "O valor financiado deve corresponder ao valor do veículo menos a entrada.",
+      }
+    }
+
+    if (
+      !PARCELAS_FINANCIAMENTO.includes(
+        dados.parcelas as
+          (typeof PARCELAS_FINANCIAMENTO)[number]
+      )
+    ) {
+      return {
+        erro:
+          "Selecione uma quantidade de parcelas válida.",
+      }
+    }
+
+    if (dados.taxa_mensal < 0) {
+      return {
+        erro:
+          "A taxa mensal não pode ser negativa.",
+      }
+    }
+
+    const existente =
+      this.financiamentoDoVeiculo(
+        dados.veiculo_id
+      )
+
+    if (existente) {
+      return {
+        erro:
+          "Este veículo já possui um financiamento ativo.",
+      }
+    }
+
+    const valorParcela =
+      Math.round(
+        parcelaPrice(
+          dados.valor_financiado,
+          dados.taxa_mensal,
+          dados.parcelas
+        ) * 100
+      ) / 100
+
+    const f: Financiamento = {
+      id: proximoId(
+        estado.financiamentos
+      ),
+      ...dados,
+      vendedor: dados.vendedor?.trim() || null,
+      valor_parcela: valorParcela,
+      valor_total_financiamento:
+        Math.round(
+          valorParcela *
+            dados.parcelas *
+            100
+        ) / 100,
+      parcelas_pagas: 0,
+    }
+
+    estado.financiamentos = [
+      f,
+      ...estado.financiamentos,
+    ]
+
     emitir()
     return f
   },
 
-  registrarParcelaPaga(id: number) {
-    estado.financiamentos = estado.financiamentos.map((f) =>
-      f.id === id && f.parcelas_pagas < f.parcelas ? { ...f, parcelas_pagas: f.parcelas_pagas + 1 } : f
-    )
+  atualizarStatusFinanciamento(
+    id: number,
+    status: StatusFinanciamento
+  ) {
+    estado.financiamentos =
+      estado.financiamentos.map((f) =>
+        f.id === id
+          ? {
+              ...f,
+              status,
+            }
+          : f
+      )
+
     emitir()
+  },
+
+  registrarParcelaPaga(id: number) {
+    estado.financiamentos =
+      estado.financiamentos.map((f) => {
+        if (
+          f.id !== id ||
+          f.status === "cancelado" ||
+          f.status === "quitado" ||
+          f.parcelas_pagas >= f.parcelas
+        ) {
+          return f
+        }
+
+        const parcelasPagas =
+          f.parcelas_pagas + 1
+
+        return {
+          ...f,
+          parcelas_pagas: parcelasPagas,
+          status:
+            parcelasPagas >= f.parcelas
+              ? ("quitado" as StatusFinanciamento)
+              : ("ativo" as StatusFinanciamento),
+        }
+      })
+
+    emitir()
+  },
+
+  /* ------------------------------------------------------------------------
+     Consórcios
+     ------------------------------------------------------------------------ */
+
+  consorcios() {
+    return [...estado.consorcios].sort(
+      (a, b) =>
+        b.data_adesao.localeCompare(a.data_adesao) ||
+        b.id - a.id
+    )
+  },
+
+  obterConsorcio(id: number) {
+    return estado.consorcios.find((c) => c.id === id) ?? null
+  },
+
+  numeroCotaEmUso(numeroCota: number) {
+    return estado.consorcios.some(
+      (c) => c.numero_cota === numeroCota
+    )
+  },
+
+  criarConsorcio(
+    dados: Omit<Consorcio, "id" | "numero_cota">
+  ) {
+    const grupo = GRUPOS_CONSORCIO.find(
+      (g) => g.codigo === dados.grupo
+    )
+
+    const taxaAdministracao =
+      dados.taxa_administracao ??
+      grupo?.taxa_administracao ??
+      18
+
+    const fundoReserva =
+      dados.fundo_reserva ??
+      grupo?.fundo_reserva ??
+      2
+
+    const seguro =
+      dados.seguro ??
+      grupo?.seguro ??
+      0
+
+    const plano = calcularPlanoConsorcio(
+      dados.valor_carta,
+      taxaAdministracao,
+      fundoReserva,
+      seguro,
+      dados.parcelas
+    )
+
+    const consorcio: Consorcio = {
+      id: proximoId(estado.consorcios),
+      numero_cota: gerarNumeroCota(estado.consorcios),
+      ...dados,
+      taxa_administracao: taxaAdministracao,
+      fundo_reserva: fundoReserva,
+      seguro,
+      valor_total_plano: plano.valor_total_plano,
+      valor_parcela: plano.valor_parcela,
+      valor_lance:
+        dados.tipo_lance === "sem_lance"
+          ? null
+          : dados.valor_lance,
+    }
+
+    estado.consorcios = [
+      consorcio,
+      ...estado.consorcios,
+    ]
+
+    emitir()
+    return consorcio
+  },
+
+  atualizarConsorcio(
+    id: number,
+    dados: Omit<Consorcio, "id" | "numero_cota">
+  ) {
+    const grupo = GRUPOS_CONSORCIO.find(
+      (g) => g.codigo === dados.grupo
+    )
+
+    const taxaAdministracao =
+      dados.taxa_administracao ??
+      grupo?.taxa_administracao ??
+      18
+
+    const fundoReserva =
+      dados.fundo_reserva ??
+      grupo?.fundo_reserva ??
+      2
+
+    const seguro =
+      dados.seguro ??
+      grupo?.seguro ??
+      0
+
+    const plano = calcularPlanoConsorcio(
+      dados.valor_carta,
+      taxaAdministracao,
+      fundoReserva,
+      seguro,
+      dados.parcelas
+    )
+
+    estado.consorcios = estado.consorcios.map((c) =>
+      c.id === id
+        ? {
+            ...c,
+            ...dados,
+            taxa_administracao: taxaAdministracao,
+            fundo_reserva: fundoReserva,
+            seguro,
+            valor_total_plano: plano.valor_total_plano,
+            valor_parcela: plano.valor_parcela,
+            valor_lance:
+              dados.tipo_lance === "sem_lance"
+                ? null
+                : dados.valor_lance,
+          }
+        : c
+    )
+
+    emitir()
+  },
+
+  excluirConsorcio(
+    id: number
+  ): { ok: true } | { erro: string } {
+    const consorcio = this.obterConsorcio(id)
+
+    if (!consorcio) {
+      return { erro: "Consórcio não encontrado." }
+    }
+
+    if (
+      consorcio.status === "contemplado" ||
+      consorcio.status === "encerrado"
+    ) {
+      return {
+        erro:
+          "Consórcios contemplados ou encerrados não podem ser excluídos.",
+      }
+    }
+
+    estado.consorcios = estado.consorcios.filter(
+      (c) => c.id !== id
+    )
+
+    emitir()
+    return { ok: true }
   },
 
   restaurar() {

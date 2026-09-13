@@ -21,8 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { VeiculoTile } from "@/components/veiculo-tile"
-import { COMISSAO_PERCENTUAL, ROTULO_FORMA, store, type FormaPagamento } from "@/data/store"
-import { percentual } from "@/lib/financeiro"
+import { ROTULO_FORMA, store, type FormaPagamento } from "@/data/store"
 import { dataBR, iniciais, moeda, moedaCompacta, moedaCurta } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -38,6 +37,27 @@ export function Comissoes({ faixa, rotuloPeriodo }: { faixa: Faixa; rotuloPeriod
   const pendente = porVendedor.reduce((s, v) => s + v.pendente, 0)
   const pendentes = store.listarLancamentos({ categoria: "comissao", status: "pendente" })
   const melhor = porVendedor[0]
+
+  const vendedoresAtivos = store.vendedoresAtivos()
+  const taxasComissao = vendedoresAtivos.map((v) => v.comissao)
+  const menorComissao = taxasComissao.length ? Math.min(...taxasComissao) : 0
+  const maiorComissao = taxasComissao.length ? Math.max(...taxasComissao) : 0
+
+  const regraComissao =
+    taxasComissao.length === 0
+      ? "—"
+      : menorComissao === maiorComissao
+        ? `${menorComissao.toLocaleString("pt-BR", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 2,
+          })}%`
+        : `${menorComissao.toLocaleString("pt-BR", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 2,
+          })}% a ${maiorComissao.toLocaleString("pt-BR", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 2,
+          })}%`
 
   const pagar = (vendedor: string, forma: FormaPagamento) => {
     const total = store.pagarComissoes(vendedor, forma)
@@ -55,7 +75,7 @@ export function Comissoes({ faixa, rotuloPeriodo }: { faixa: Faixa; rotuloPeriod
         <KpiCard rotulo={`Comissão gerada ${rotuloPeriodo}`} valor={moedaCompacta(gerada)} icone={HandCoins} tom="primary" detalhe={`${porVendedor.reduce((s, v) => s + v.vendas, 0)} vendas comissionadas`} />
         <KpiCard rotulo="Já paga" valor={moedaCompacta(paga)} icone={CircleCheck} tom="success" detalhe={gerada ? `${Math.round((paga / gerada) * 100)}% do gerado` : "—"} />
         <KpiCard rotulo="A pagar" valor={moedaCompacta(pendente)} icone={Hourglass} tom={pendente > 0 ? "warning" : "neutral"} chip={pendentes.length > 0 ? { texto: `${pendentes.length} ${pendentes.length === 1 ? "pendente" : "pendentes"}`, tom: "warning" } : undefined} detalhe="Comissões ainda não liquidadas" />
-        <KpiCard rotulo="Regra vigente" valor={percentual(COMISSAO_PERCENTUAL)} icone={BadgePercent} tom="neutral" detalhe="Sobre o valor negociado da venda" />
+        <KpiCard rotulo="Comissão por vendedor" valor={regraComissao} icone={BadgePercent} tom="neutral" detalhe="Percentual definido no cadastro do funcionário" />
       </div>
 
       <div className="grid gap-3 xl:grid-cols-5">

@@ -91,16 +91,28 @@ export function SimuladorDialog({
     const f = store.criarFinanciamento({
       cliente_id: Number(clienteId),
       veiculo_id: Number(veiculoId),
+      vendedor: null,
       banco,
+      valor_veiculo: valorNum,
       valor_financiado: sim.financiado,
       entrada: entradaNum,
       parcelas: Number(parcelas),
       taxa_mensal: taxaNum,
       inicio: hojeISO(),
+      status: "em_analise",
     })
+
+    if ("erro" in f) {
+      toast.error("Não foi possível registrar o contrato", {
+        description: f.erro,
+      })
+      return
+    }
+
     toast.success("Contrato registrado", {
       description: `${f.parcelas}× de ${moeda(f.valor_parcela)} · ${banco}`,
     })
+
     onOpenChange(false)
   }
 
