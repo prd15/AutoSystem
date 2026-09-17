@@ -1,0 +1,2 @@
+// Feature: veiculos. Controller, Service, Repository, Entity e dto/ entram aqui.
+package br.com.autosystem.veiculo;

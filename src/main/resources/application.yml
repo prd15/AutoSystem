@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: autosystem
+
+  # Datasource base (fallback para prod / execucao manual).
+  # Em dev, o spring-boot-docker-compose sobe o Postgres e sobrescreve isto.
+  # Em teste, o Testcontainers sobrescreve via @ServiceConnection.
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:autosystem}
+    username: ${DB_USER:autosystem}
+    password: ${DB_PASS:autosystem}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate          # quem cria tabela e o Flyway; Hibernate so confere
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: America/Sao_Paulo
+
+  flyway:
+    enabled: true
+
+  jackson:
+    property-naming-strategy: SNAKE_CASE     # casa com o front (store.ts ja e snake_case)
+    time-zone: America/Sao_Paulo
+
+  threads:
+    virtual:
+      enabled: true               # Java 21
+
+  docker:
+    compose:
+      enabled: false              # ligado so no perfil dev
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

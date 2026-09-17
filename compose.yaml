@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: autosystem
+      POSTGRES_USER: autosystem
+      POSTGRES_PASSWORD: autosystem
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autosystem -d autosystem"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
