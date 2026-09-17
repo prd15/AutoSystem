@@ -8,7 +8,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 // Sobe um Postgres real e descartavel para os testes de integracao.
 // @ServiceConnection injeta a datasource automaticamente (Boot 3.1+).
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
     @Bean
     @ServiceConnection
