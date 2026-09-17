@@ -40,12 +40,28 @@ public class ClienteService {
         validarCpfDisponivel(cpf, null);
 
         Cliente cliente = new Cliente();
+        aplicar(req, cliente, cpf);
+
+        return ClienteResponse.from(repository.save(cliente));
+    }
+
+    @Transactional
+    public ClienteResponse atualizar(Long id, ClienteRequest req) {
+        Cliente cliente = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente nao encontrado."));
+        String cpf = soDigitos(req.cpf());
+        validarCpfDisponivel(cpf, id); // idAtual permite manter o proprio CPF
+
+        aplicar(req, cliente, cpf);
+
+        return ClienteResponse.from(repository.save(cliente));
+    }
+
+    private void aplicar(ClienteRequest req, Cliente cliente, String cpf) {
         cliente.setNome(req.nome().trim());
         cliente.setCpf(cpf);
         cliente.setTelefone(req.telefone().trim());
         cliente.setEmail(normalizarEmail(req.email()));
-
-        return ClienteResponse.from(repository.save(cliente));
     }
 
     private String soDigitos(String valor) {

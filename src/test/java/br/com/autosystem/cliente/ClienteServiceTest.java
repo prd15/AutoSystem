@@ -58,4 +58,53 @@ class ClienteServiceTest {
         when(repository.findById(99L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.buscarPorId(99L)).isInstanceOf(EntityNotFoundException.class);
     }
+
+    @Test
+    void atualizar_removeMascaraDoCpf_eAtualizaCampos() {
+        Cliente existente = cliente(1L, "Ana", "52998224725");
+        when(repository.findById(1L)).thenReturn(Optional.of(existente));
+        when(repository.findByCpf("52998224725")).thenReturn(Optional.of(existente)); // proprio CPF
+        when(repository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.atualizar(1L, new ClienteRequest("Ana Souza", "529.982.247-25", "(34) 90000-0000", "NOVA@X.com"));
+
+        ArgumentCaptor<Cliente> captor = ArgumentCaptor.forClass(Cliente.class);
+        verify(repository).save(captor.capture());
+        assertThat(captor.getValue().getNome()).isEqualTo("Ana Souza");
+        assertThat(captor.getValue().getCpf()).isEqualTo("52998224725");
+        assertThat(captor.getValue().getEmail()).isEqualTo("nova@x.com");
+    }
+
+    @Test
+    void atualizar_inexistente_lancaEntityNotFound_eNaoSalva() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.atualizar(99L,
+                new ClienteRequest("Ana", "529.982.247-25", "(34) 90000-0000", "ana@x.com")))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void atualizar_comCpfDeOutroCliente_lancaBusinessException_eNaoSalva() {
+        when(repository.findById(1L)).thenReturn(Optional.of(cliente(1L, "Ana", "52998224725")));
+        when(repository.findByCpf("52998224725")).thenReturn(Optional.of(cliente(2L, "Bruno", "52998224725")));
+
+        assertThatThrownBy(() -> service.atualizar(1L,
+                new ClienteRequest("Ana", "529.982.247-25", "(34) 90000-0000", "ana@x.com")))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("CPF ja cadastrado");
+
+        verify(repository, never()).save(any());
+    }
+
+    private Cliente cliente(Long id, String nome, String cpf) {
+        Cliente c = new Cliente();
+        c.setId(id);
+        c.setNome(nome);
+        c.setCpf(cpf);
+        c.setTelefone("34999990000");
+        return c;
+    }
 }
