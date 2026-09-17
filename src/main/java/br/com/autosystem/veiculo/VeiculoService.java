@@ -6,6 +6,7 @@ import br.com.autosystem.veiculo.dto.VeiculoListaResponse;
 import br.com.autosystem.veiculo.dto.VeiculoRequest;
 import br.com.autosystem.veiculo.dto.VeiculoResponse;
 import br.com.autosystem.veiculo.dto.VeiculoResumo;
+import br.com.autosystem.venda.VendaRepository;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +23,12 @@ import java.util.Map;
 public class VeiculoService {
 
     private final VeiculoRepository repository;
+    private final VendaRepository vendaRepository;
     private final Clock clock;
 
-    public VeiculoService(VeiculoRepository repository, Clock clock) {
+    public VeiculoService(VeiculoRepository repository, VendaRepository vendaRepository, Clock clock) {
         this.repository = repository;
+        this.vendaRepository = vendaRepository;
         this.clock = clock;
     }
 
@@ -77,7 +80,12 @@ public class VeiculoService {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Veiculo nao encontrado.");
         }
-        // FK ON DELETE RESTRICT bloqueia se houver venda -> vira 409 no handler.
+        // Regra 3: veiculo com venda registrada nao pode ser excluido. Devolve os dados da
+        // venda no 409 (a FK ON DELETE RESTRICT ainda protege o banco como ultima linha).
+        vendaRepository.findByVeiculoId(id).ifPresent(venda -> {
+            throw new VeiculoComVendaException(
+                    venda.getId(), venda.getDataVenda(), venda.getValorVenda(), venda.getCliente().getNome());
+        });
         repository.deleteById(id);
     }
 

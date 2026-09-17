@@ -19,5 +19,8 @@ public interface VendaRepository extends JpaRepository<Venda, Long> {
     @EntityGraph(attributePaths = {"veiculo", "cliente"})
     Optional<Venda> findById(Long id);
 
-    boolean existsByVeiculoId(Long veiculoId);
+    // Venda vinculada a um veiculo (0..1, ja que veiculo_id e UNIQUE). Carrega o cliente
+    // para montar o corpo do 409 na exclusao bloqueada.
+    @EntityGraph(attributePaths = {"cliente"})
+    Optional<Venda> findByVeiculoId(Long veiculoId);
 }

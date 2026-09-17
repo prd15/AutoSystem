@@ -1,9 +1,12 @@
 package br.com.autosystem.veiculo;
 
+import br.com.autosystem.cliente.Cliente;
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
 import br.com.autosystem.veiculo.dto.VeiculoRequest;
 import br.com.autosystem.veiculo.dto.VeiculoResponse;
+import br.com.autosystem.venda.Venda;
+import br.com.autosystem.venda.VendaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -30,13 +34,15 @@ class VeiculoServiceTest {
 
     @Mock
     VeiculoRepository repository;
+    @Mock
+    VendaRepository vendaRepository;
 
     VeiculoService service;
 
     @BeforeEach
     void init() {
         Clock clock = Clock.fixed(Instant.parse("2026-09-16T12:00:00Z"), ZoneOffset.UTC);
-        service = new VeiculoService(repository, clock);
+        service = new VeiculoService(repository, vendaRepository, clock);
     }
 
     private VeiculoRequest req(String placa) {
@@ -102,8 +108,49 @@ class VeiculoServiceTest {
     }
 
     @Test
+    void excluir_semVendaRegistrada_removeOVeiculo() {
+        when(repository.existsById(1L)).thenReturn(true);
+        when(vendaRepository.findByVeiculoId(1L)).thenReturn(Optional.empty());
+
+        service.excluir(1L);
+
+        verify(repository).deleteById(1L);
+    }
+
+    @Test
+    void excluir_comVendaRegistrada_lancaVeiculoComVenda_comDadosDaVenda_eNaoRemove() {
+        when(repository.existsById(1L)).thenReturn(true);
+        when(vendaRepository.findByVeiculoId(1L)).thenReturn(Optional.of(venda()));
+
+        assertThatThrownBy(() -> service.excluir(1L))
+                .isInstanceOf(VeiculoComVendaException.class)
+                .hasMessageContaining("03/09/2026")
+                .extracting(ex -> ((VeiculoComVendaException) ex).getVenda())
+                .satisfies(v -> {
+                    assertThat(v.id()).isEqualTo(7L);
+                    assertThat(v.dataVenda()).isEqualTo(LocalDate.of(2026, 9, 3));
+                    assertThat(v.valorVenda()).isEqualByComparingTo("109500.00");
+                    assertThat(v.cliente()).isEqualTo("Marina Alves Ribeiro");
+                });
+
+        verify(repository, never()).deleteById(any());
+    }
+
+    @Test
     void buscarPorId_inexistente_lancaEntityNotFound() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.buscarPorId(99L)).isInstanceOf(EntityNotFoundException.class);
+    }
+
+    private Venda venda() {
+        Cliente cliente = new Cliente();
+        cliente.setNome("Marina Alves Ribeiro");
+
+        Venda venda = new Venda();
+        venda.setId(7L);
+        venda.setCliente(cliente);
+        venda.setValorVenda(new BigDecimal("109500.00"));
+        venda.setDataVenda(LocalDate.of(2026, 9, 3));
+        return venda;
     }
 }

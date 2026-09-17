@@ -2,6 +2,7 @@ package br.com.autosystem.commons.handler;
 
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
+import br.com.autosystem.veiculo.VeiculoComVendaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -51,6 +52,17 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         pd.setTitle("Conflito de regra");
         pd.setProperty("erro", ex.getMessage());
+        return pd;
+    }
+
+    // Especializa o 409 da exclusao bloqueada: alem do 'erro', devolve o bloco 'venda'
+    // (id, data_venda, valor_venda, cliente) que o front usa no dialogo de bloqueio.
+    @ExceptionHandler(VeiculoComVendaException.class)
+    public ProblemDetail handleVeiculoComVenda(VeiculoComVendaException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle("Conflito de regra");
+        pd.setProperty("erro", ex.getMessage());
+        pd.setProperty("venda", ex.getVenda());
         return pd;
     }
 
