@@ -3,6 +3,7 @@ package br.com.autosystem.veiculo;
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
 import br.com.autosystem.veiculo.dto.VeiculoRequest;
+import br.com.autosystem.veiculo.dto.VeiculoResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +44,18 @@ class VeiculoServiceTest {
                 new BigDecimal("100000.00"), placa, null);
     }
 
+    private Veiculo veiculo(String marca, String modelo, StatusVeiculo status) {
+        Veiculo v = new Veiculo();
+        v.setMarca(marca);
+        v.setModelo(modelo);
+        v.setAno(2021);
+        v.setCor("Prata");
+        v.setQuilometragem(1000);
+        v.setPreco(new BigDecimal("100000.00"));
+        v.setStatus(status);
+        return v;
+    }
+
     @Test
     void criar_normalizaPlacaParaMaiusculo_eDefineDisponivelPorPadrao() {
         when(repository.findByPlaca("ABC1D23")).thenReturn(Optional.empty());
@@ -64,6 +78,20 @@ class VeiculoServiceTest {
                 .hasMessageContaining("Placa ja cadastrada");
 
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void listarVendaveis_consultaStatusDiferenteDeVendido_eMapeiaParaResponse() {
+        when(repository.findByStatusNotOrderByMarcaAscModeloAsc(StatusVeiculo.VENDIDO))
+                .thenReturn(List.of(
+                        veiculo("Honda", "Civic", StatusVeiculo.DISPONIVEL),
+                        veiculo("Toyota", "Corolla", StatusVeiculo.RESERVADO)));
+
+        List<VeiculoResponse> vendaveis = service.listarVendaveis();
+
+        assertThat(vendaveis).extracting(VeiculoResponse::marca).containsExactly("Honda", "Toyota");
+        assertThat(vendaveis).extracting(VeiculoResponse::status)
+                .doesNotContain(StatusVeiculo.VENDIDO);
     }
 
     @Test

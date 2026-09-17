@@ -45,6 +45,11 @@ public class VeiculoController {
         return service.listarMarcas();
     }
 
+    @GetMapping("/vendaveis")
+    public List<VeiculoResponse> vendaveis() {
+        return service.listarVendaveis();
+    }
+
     @GetMapping("/{id}")
     public VeiculoResponse buscarPorId(@PathVariable("id") Long id) {
         return service.buscarPorId(id);

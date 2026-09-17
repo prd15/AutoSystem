@@ -16,6 +16,10 @@ public interface VeiculoRepository
 
     long countByStatus(StatusVeiculo status);
 
+    // Vendaveis = tudo que ainda nao foi vendido (disponivel ou reservado). Ordena para a
+    // selecao no registro de venda ficar estavel.
+    List<Veiculo> findByStatusNotOrderByMarcaAscModeloAsc(StatusVeiculo status);
+
     @Query("select distinct v.marca from Veiculo v order by v.marca")
     List<String> buscarMarcas();
 

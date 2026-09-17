@@ -74,4 +74,16 @@ class VeiculoRepositoryIntegrationTest extends IntegracaoTest {
         repository.save(veiculo("Toyota", "Corolla", StatusVeiculo.DISPONIVEL, "120000.00", null));
         assertThat(repository.count()).isEqualTo(2);
     }
+
+    @Test
+    void vendaveis_excluiVendidos_eOrdenaPorMarcaEModelo() {
+        repository.save(veiculo("Toyota", "Corolla", StatusVeiculo.DISPONIVEL, "120000.00", "TYT2B22"));
+        repository.save(veiculo("Fiat", "Argo", StatusVeiculo.VENDIDO, "70000.00", "FIA3C33"));
+        repository.save(veiculo("Honda", "Civic", StatusVeiculo.RESERVADO, "100000.00", "HND1A11"));
+
+        List<Veiculo> vendaveis = repository.findByStatusNotOrderByMarcaAscModeloAsc(StatusVeiculo.VENDIDO);
+
+        assertThat(vendaveis).extracting(Veiculo::getMarca).containsExactly("Honda", "Toyota");
+        assertThat(vendaveis).noneMatch(v -> v.getStatus() == StatusVeiculo.VENDIDO);
+    }
 }

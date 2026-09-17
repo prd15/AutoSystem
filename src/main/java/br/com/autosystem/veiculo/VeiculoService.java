@@ -49,6 +49,12 @@ public class VeiculoService {
         return repository.buscarMarcas();
     }
 
+    @Transactional(readOnly = true)
+    public List<VeiculoResponse> listarVendaveis() {
+        return repository.findByStatusNotOrderByMarcaAscModeloAsc(StatusVeiculo.VENDIDO)
+                .stream().map(this::toResponse).toList();
+    }
+
     @Transactional
     public VeiculoResponse criar(VeiculoRequest req) {
         Veiculo veiculo = new Veiculo();
