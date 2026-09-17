@@ -5,6 +5,18 @@
 node_modules/
 dist/
 
+# Java / Maven (back-end)
+target/
+*.class
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+HELP.md
+
 # Ambiente
 .env
 .env.local
