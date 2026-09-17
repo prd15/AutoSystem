@@ -33,4 +33,12 @@ class MigrationTest {
                 Integer.class);
         assertThat(qtd).isEqualTo(1);
     }
+
+    @Test
+    void migrationV2CriaTabelaUsuarios() {
+        var tabelas = jdbc.queryForList(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
+                String.class);
+        assertThat(tabelas).contains("usuarios");
+    }
 }
