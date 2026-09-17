@@ -1,27 +1,15 @@
 package br.com.autosystem.cliente;
 
-import br.com.autosystem.TestcontainersConfiguration;
-import org.junit.jupiter.api.BeforeEach;
+import br.com.autosystem.IntegracaoTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
-class ClienteRepositoryIntegrationTest {
+class ClienteRepositoryIntegrationTest extends IntegracaoTest {
 
     @Autowired
     ClienteRepository repository;
-
-    @BeforeEach
-    void limpar() {
-        repository.deleteAll();
-    }
 
     private Cliente cliente(String nome, String cpf, String email) {
         Cliente c = new Cliente();

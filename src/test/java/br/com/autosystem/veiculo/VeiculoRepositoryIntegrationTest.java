@@ -1,12 +1,8 @@
 package br.com.autosystem.veiculo;
 
-import br.com.autosystem.TestcontainersConfiguration;
-import org.junit.jupiter.api.BeforeEach;
+import br.com.autosystem.IntegracaoTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,18 +10,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // Testa os filtros (Specification), o conversor de status e as agregacoes contra um Postgres real.
-@SpringBootTest
-@ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
-class VeiculoRepositoryIntegrationTest {
+class VeiculoRepositoryIntegrationTest extends IntegracaoTest {
 
     @Autowired
     VeiculoRepository repository;
-
-    @BeforeEach
-    void limpar() {
-        repository.deleteAll();
-    }
 
     private Veiculo veiculo(String marca, String modelo, StatusVeiculo status, String preco, String placa) {
         Veiculo v = new Veiculo();
@@ -52,7 +40,6 @@ class VeiculoRepositoryIntegrationTest {
         assertThat(disponiveis.get(0).getStatus()).isEqualTo(StatusVeiculo.DISPONIVEL);
 
         assertThat(repository.countByStatus(StatusVeiculo.VENDIDO)).isEqualTo(1);
-        // valor em estoque exclui vendidos: 100.000 + 120.000
         assertThat(repository.somarPrecoExcetoStatus(StatusVeiculo.VENDIDO))
                 .isEqualByComparingTo("220000.00");
     }
