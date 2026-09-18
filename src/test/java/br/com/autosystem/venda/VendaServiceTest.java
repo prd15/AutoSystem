@@ -122,6 +122,35 @@ class VendaServiceTest {
     }
 
     @Test
+    void registrar_descontoAVistaAcimaDoTeto_lancaValidacao_eNaoSalva() {
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo(StatusVeiculo.DISPONIVEL)));
+        when(clienteRepository.findById(2L)).thenReturn(Optional.of(cliente()));
+
+        // 85000 num carro de 100000 = 15% de desconto, acima do teto de 10%.
+        var req = new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("85000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
+
+        ValidacaoException ex = catchThrowableOfType(() -> service.registrar(req), ValidacaoException.class);
+        assertThat(ex.getCampos()).containsEntry("valor_venda", "O desconto máximo permitido é de 10%.");
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void registrar_descontoAVistaNoLimite_ehPermitido() {
+        Veiculo v = veiculo(StatusVeiculo.DISPONIVEL);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(v));
+        when(clienteRepository.findById(2L)).thenReturn(Optional.of(cliente()));
+        when(vendaRepository.save(any(Venda.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // 90000 num carro de 100000 = exatamente 10% -> no limite, permitido.
+        var req = new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("90000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
+
+        service.registrar(req);
+        assertThat(v.getStatus()).isEqualTo(StatusVeiculo.VENDIDO);
+    }
+
+    @Test
     void registrar_agioEmFormaNaoAVista_ehPermitido() {
         Veiculo v = veiculo(StatusVeiculo.DISPONIVEL);
         when(veiculoRepository.findById(1L)).thenReturn(Optional.of(v));

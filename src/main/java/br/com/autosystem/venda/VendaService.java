@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,6 +23,10 @@ public class VendaService {
 
     private static final LocalDate DATA_MINIMA = LocalDate.of(2000, 1, 1);
     private static final LocalDate DATA_MAXIMA = LocalDate.of(2100, 12, 31);
+
+    // Teto de desconto (em %). Provisorio: vira configuracoes.comercial.limite_desconto no card B4.
+    private static final BigDecimal LIMITE_DESCONTO_PERCENTUAL = new BigDecimal("10");
+    private static final BigDecimal CEM = new BigDecimal("100");
 
     private final VendaRepository vendaRepository;
     private final VeiculoRepository veiculoRepository;
@@ -90,6 +95,14 @@ public class VendaService {
         }
         if (forma != FormaPagamentoVenda.AVISTA) {
             throw new ValidacaoException("valor_venda", "Desconto só é permitido em vendas à vista.");
+        }
+        // Regra: desconto (a vista) nao pode passar do teto permitido.
+        BigDecimal percentual = preco.subtract(valorVenda)
+                .multiply(CEM)
+                .divide(preco, 4, RoundingMode.HALF_UP);
+        if (percentual.compareTo(LIMITE_DESCONTO_PERCENTUAL) > 0) {
+            throw new ValidacaoException("valor_venda",
+                    "O desconto máximo permitido é de " + LIMITE_DESCONTO_PERCENTUAL.toBigInteger() + "%.");
         }
     }
 }
