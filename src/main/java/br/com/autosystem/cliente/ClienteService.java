@@ -84,7 +84,9 @@ public class ClienteService {
         repository.findByCpf(cpf)
                 .filter(existente -> idAtual == null || !existente.getId().equals(idAtual))
                 .ifPresent(existente -> {
-                    throw new BusinessException("CPF ja cadastrado.");
+                    // Mesma mensagem do front (store.criarCliente) e no campo cpf.
+                    String msg = "Já existe um cliente com este CPF.";
+                    throw new BusinessException(msg, "cpf", msg);
                 });
     }
 }

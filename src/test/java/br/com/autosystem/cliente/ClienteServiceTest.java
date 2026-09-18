@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,14 +43,15 @@ class ClienteServiceTest {
     }
 
     @Test
-    void cadastrar_comCpfDuplicado_lancaBusinessException_eNaoSalva() {
+    void cadastrar_comCpfDuplicado_lancaBusinessException_comCampoCpf_eNaoSalva() {
         when(repository.findByCpf("52998224725")).thenReturn(Optional.of(new Cliente()));
 
-        assertThatThrownBy(() -> service.cadastrar(
-                new ClienteRequest("Ana", "529.982.247-25", "(34) 99999-0001", "ana@x.com")))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("CPF ja cadastrado");
+        BusinessException ex = catchThrowableOfType(() -> service.cadastrar(
+                new ClienteRequest("Ana", "529.982.247-25", "(34) 99999-0001", "ana@x.com")),
+                BusinessException.class);
 
+        assertThat(ex).hasMessageContaining("Já existe um cliente com este CPF");
+        assertThat(ex.getCampos()).containsEntry("cpf", "Já existe um cliente com este CPF.");
         verify(repository, never()).save(any());
     }
 
@@ -94,7 +96,7 @@ class ClienteServiceTest {
         assertThatThrownBy(() -> service.atualizar(1L,
                 new ClienteRequest("Ana", "529.982.247-25", "(34) 90000-0000", "ana@x.com")))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("CPF ja cadastrado");
+                .hasMessageContaining("Já existe um cliente com este CPF");
 
         verify(repository, never()).save(any());
     }
