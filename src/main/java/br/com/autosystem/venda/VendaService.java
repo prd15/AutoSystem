@@ -27,6 +27,8 @@ public class VendaService {
     // Teto de desconto (em %). Provisorio: vira configuracoes.comercial.limite_desconto no card B4.
     private static final BigDecimal LIMITE_DESCONTO_PERCENTUAL = new BigDecimal("10");
     private static final BigDecimal CEM = new BigDecimal("100");
+    // Mesma tolerancia do front (store.validarDescontoVenda) na comparacao com o teto.
+    private static final BigDecimal TOLERANCIA_DESCONTO = new BigDecimal("0.000001");
 
     private final VendaRepository vendaRepository;
     private final VeiculoRepository veiculoRepository;
@@ -94,15 +96,23 @@ public class VendaService {
             return;
         }
         if (forma != FormaPagamentoVenda.AVISTA) {
-            throw new ValidacaoException("valor_venda", "Desconto só é permitido em vendas à vista.");
+            throw new ValidacaoException("valor_venda", "Desconto é permitido somente em vendas à vista.");
         }
-        // Regra: desconto (a vista) nao pode passar do teto permitido.
+        // Regra: desconto (a vista) nao pode passar do teto. Mesma mensagem/formato do front
+        // (store.validarDescontoVenda): mostra o percentual com 2 casas e virgula.
         BigDecimal percentual = preco.subtract(valorVenda)
                 .multiply(CEM)
-                .divide(preco, 4, RoundingMode.HALF_UP);
-        if (percentual.compareTo(LIMITE_DESCONTO_PERCENTUAL) > 0) {
+                .divide(preco, 6, RoundingMode.HALF_UP);
+        if (percentual.compareTo(LIMITE_DESCONTO_PERCENTUAL.add(TOLERANCIA_DESCONTO)) > 0) {
             throw new ValidacaoException("valor_venda",
-                    "O desconto máximo permitido é de " + LIMITE_DESCONTO_PERCENTUAL.toBigInteger() + "%.");
+                    "O desconto de " + formatarPercentual(percentual)
+                            + "% ultrapassa o limite permitido de "
+                            + formatarPercentual(LIMITE_DESCONTO_PERCENTUAL) + "%.");
         }
+    }
+
+    // Percentual com 2 casas e virgula decimal, como o front exibe (ex.: "15,00").
+    private String formatarPercentual(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',');
     }
 }

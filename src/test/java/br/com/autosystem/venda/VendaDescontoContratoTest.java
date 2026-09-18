@@ -66,7 +66,7 @@ class VendaDescontoContratoTest extends IntegracaoTest {
                         .content(corpo(veiculoId, clienteId, "95000.00", "financiamento")))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.erro").exists())
-                .andExpect(jsonPath("$.campos.valor_venda").value("Desconto só é permitido em vendas à vista."));
+                .andExpect(jsonPath("$.campos.valor_venda").value("Desconto é permitido somente em vendas à vista."));
     }
 
     @Test
@@ -77,7 +77,8 @@ class VendaDescontoContratoTest extends IntegracaoTest {
         mockMvc.perform(post("/api/vendas").contentType(MediaType.APPLICATION_JSON)
                         .content(corpo(veiculoId, clienteId, "85000.00", "avista")))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.campos.valor_venda").value("O desconto máximo permitido é de 10%."));
+                .andExpect(jsonPath("$.campos.valor_venda")
+                        .value("O desconto de 15,00% ultrapassa o limite permitido de 10,00%."));
     }
 
     @Test

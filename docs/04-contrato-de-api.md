@@ -143,9 +143,12 @@ inexistente.
 tabela — ágio — é sempre livre):
 
 - desconto só é permitido em venda **à vista** → senão `422` `campos.valor_venda`
-  "Desconto só é permitido em vendas à vista.";
+  "Desconto é permitido somente em vendas à vista.";
 - desconto limitado a **10 %** → acima disso `422` `campos.valor_venda`
-  "O desconto máximo permitido é de 10%." (o teto virará `configuracoes.limite_desconto` no card B4).
+  "O desconto de {X}% ultrapassa o limite permitido de 10,00%." (percentual com 2 casas e
+  vírgula; o teto virará `configuracoes.limite_desconto` no card B4).
+
+> Mensagens idênticas às do front (`store.validarDescontoVenda`), que é a fonte da verdade.
 
 **Este é o endpoint que define a exigência de banco transacional.**
 

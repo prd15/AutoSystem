@@ -117,7 +117,7 @@ class VendaServiceTest {
                 LocalDate.of(2026, 9, 10), FormaPagamentoVenda.FINANCIAMENTO);
 
         ValidacaoException ex = catchThrowableOfType(() -> service.registrar(req), ValidacaoException.class);
-        assertThat(ex.getCampos()).containsEntry("valor_venda", "Desconto só é permitido em vendas à vista.");
+        assertThat(ex.getCampos()).containsEntry("valor_venda", "Desconto é permitido somente em vendas à vista.");
         verify(vendaRepository, never()).save(any());
     }
 
@@ -131,7 +131,8 @@ class VendaServiceTest {
                 LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
 
         ValidacaoException ex = catchThrowableOfType(() -> service.registrar(req), ValidacaoException.class);
-        assertThat(ex.getCampos()).containsEntry("valor_venda", "O desconto máximo permitido é de 10%.");
+        assertThat(ex.getCampos()).containsEntry("valor_venda",
+                "O desconto de 15,00% ultrapassa o limite permitido de 10,00%.");
         verify(vendaRepository, never()).save(any());
     }
 
