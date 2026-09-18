@@ -91,7 +91,8 @@ public class VendaService {
     // venda a tabela ou acima dela -- agio -- e sempre livre). Regra: desconto so em venda
     // a vista. Erro 422 no campo valor_venda, como o formulario do front espera.
     private void validarDesconto(BigDecimal preco, BigDecimal valorVenda, FormaPagamentoVenda forma) {
-        boolean temDesconto = preco != null && preco.signum() > 0 && valorVenda.compareTo(preco) < 0;
+        boolean temDesconto = preco != null && valorVenda != null
+                && preco.signum() > 0 && valorVenda.compareTo(preco) < 0;
         if (!temDesconto) {
             return;
         }
