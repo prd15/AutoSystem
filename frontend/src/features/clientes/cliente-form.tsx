@@ -78,13 +78,8 @@ export function validarCliente(
     e.sobrenome = "Informe o sobrenome do cliente."
   } else if (!nomeValido(c.sobrenome)) {
     e.sobrenome = "Use apenas letras no sobrenome."
-
   } else if (c.sobrenome.trim().length > 80) {
     e.sobrenome = "O sobrenome deve ter até 80 caracteres."
-
-  } else if (c.sobrenome.trim().length > 49) {
-    e.sobrenome = "O sobrenome deve ter até 49 caracteres."
-
   }
 
   const cpfAtual = c.cpf.replace(/\D/g, "")
@@ -164,11 +159,7 @@ export function ClienteForm({
             value={dados.sobrenome ?? ""}
             onChange={(e) => set("sobrenome", somenteLetras(e.target.value))}
             placeholder="Alves Ribeiro"
-
             maxLength={80}
-
-            maxLength={49}
-
             autoComplete="family-name"
           />
         )}
