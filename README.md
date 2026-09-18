@@ -379,6 +379,7 @@ Para integração futura com a API:
 | `docs/08-decisao-stack-back-end.md` | Decisão da stack utilizada no back-end |
 | `docs/09-modelo-conceitual-mer.md` | Modelo conceitual e MER |
 | `docs/10-evolucao-funcional-frontend.md` | Evolução funcional implementada no front-end |
+| `docs/11-auditoria-2026-09-17.md` | Auditoria de 17/09/2026: achados, evidências e como reproduzir |
 | `docs/autosystem-escopo-primeira-entrega.md` | Escopo original da primeira entrega |
 | `frontend/README.md` | Informações específicas do front-end |
 | `CONTRIBUTING.md` | Fluxo de contribuição e padrões do repositório |
