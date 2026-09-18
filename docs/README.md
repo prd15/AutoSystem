@@ -16,6 +16,7 @@ Nada foi alterado no protótipo. Esta pasta só descreve o que existe lá.
 | [05 — Requisitos não funcionais](05-requisitos-nao-funcionais.md) | Idioma, formatação, acessibilidade, desempenho, o que falta |
 | [06 — Stack e arquitetura](06-stack-e-arquitetura.md) | Comparativo de opções, recomendação e plano de execução |
 | [07 — Decisões arquiteturais](07-decisoes-arquiteturais.md) | Pauta de reunião para o rumo Java + Spring Boot: 17 decisões, dependências e armadilhas |
+| [11 — Auditoria de 17/09/2026](11-auditoria-2026-09-17.md) | Auditoria do sistema no ar: 39 achados com evidência, integração front × back e como reproduzir |
 
 ## Sumário executivo
 
