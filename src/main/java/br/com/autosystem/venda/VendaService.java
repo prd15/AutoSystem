@@ -73,6 +73,8 @@ public class VendaService {
 
         validarDesconto(veiculo.getPreco(), req.valorVenda(), req.formaPagamento());
 
+        // TODO(card D1): forma_pagamento hoje so e usada para validar o desconto; ainda nao e
+        // persistida na venda (a entidade nao tem a coluna). Persistir quando o D1 entrar.
         Venda venda = new Venda();
         venda.setVeiculo(veiculo);
         venda.setCliente(cliente);
