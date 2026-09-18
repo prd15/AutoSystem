@@ -60,7 +60,8 @@ class VendaServiceTest {
     }
 
     private VendaRequest req() {
-        return new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("95000.00"), LocalDate.of(2026, 9, 10));
+        return new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("95000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
     }
 
     @Test

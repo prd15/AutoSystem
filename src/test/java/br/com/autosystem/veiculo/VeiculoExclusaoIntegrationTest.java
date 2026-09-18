@@ -3,6 +3,7 @@ package br.com.autosystem.veiculo;
 import br.com.autosystem.IntegracaoTest;
 import br.com.autosystem.cliente.Cliente;
 import br.com.autosystem.cliente.ClienteRepository;
+import br.com.autosystem.venda.FormaPagamentoVenda;
 import br.com.autosystem.venda.VendaService;
 import br.com.autosystem.venda.dto.VendaRequest;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,8 @@ class VeiculoExclusaoIntegrationTest extends IntegracaoTest {
         Long veiculoId = novoVeiculo();
         Long clienteId = novoCliente();
         vendaService.registrar(new VendaRequest(
-                veiculoId, clienteId, "Alan Ferreira", new BigDecimal("95000.00"), LocalDate.of(2026, 9, 3)));
+                veiculoId, clienteId, "Alan Ferreira", new BigDecimal("95000.00"),
+                LocalDate.of(2026, 9, 3), FormaPagamentoVenda.AVISTA));
 
         mockMvc.perform(delete("/api/veiculos/{id}", veiculoId))
                 .andExpect(status().isConflict())
