@@ -16,7 +16,12 @@ Nada foi alterado no protótipo. Esta pasta só descreve o que existe lá.
 | [05 — Requisitos não funcionais](05-requisitos-nao-funcionais.md) | Idioma, formatação, acessibilidade, desempenho, o que falta |
 | [06 — Stack e arquitetura](06-stack-e-arquitetura.md) | Comparativo de opções, recomendação e plano de execução |
 | [07 — Decisões arquiteturais](07-decisoes-arquiteturais.md) | Pauta de reunião para o rumo Java + Spring Boot: 17 decisões, dependências e armadilhas |
+| [08 — Decisão de stack do back-end](08-decisao-stack-back-end.md) | Java 21 + Spring Boot, convenções de API e persistência |
+| [09 — Modelo conceitual (MER)](09-modelo-conceitual-mer.md) | Entidades e cardinalidades do escopo aprovado |
+| [10 — Evolução funcional do front-end](10-evolucao-funcional-frontend.md) | Retrato atual das telas, perfis e regras do front |
 | [11 — Auditoria de 17/09/2026](11-auditoria-2026-09-17.md) | Auditoria do sistema no ar: 39 achados com evidência, integração front × back e como reproduzir |
+| [12 — Plano de implementação do back-end](12-plano-implementacao-backend.md) | Sprint de 18/09: cada rota a construir, em ordem, com regras, mensagens e pontos de sincronização com o front |
+| [13 — Plano de implementação do front-end](13-plano-implementacao-frontend.md) | Sprint de 18/09: cada tela a ligar na API, em ordem, com o que muda em cada arquivo e pontos de sincronização com o back |
 
 ## Sumário executivo
 
