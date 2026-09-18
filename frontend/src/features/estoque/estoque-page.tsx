@@ -374,6 +374,21 @@ export function EstoquePage() {
               { valor: "quadro", rotulo: "Quadro", icone: Columns3 },
             ]}
           />
+
+          {podeGerenciarEstoque && (
+            <Button
+              size="sm"
+              className="h-8"
+              onClick={() => {
+                setEditando(null)
+                setStatusNovo("disponivel")
+                setNovoVeiculo(true)
+              }}
+            >
+              <Plus className="size-4" />
+              Cadastrar veículo
+            </Button>
+          )}
         </div>
       </div>
 

@@ -60,7 +60,7 @@ const CONFIGURACOES_INICIAIS: Configuracoes = {
 
   comercial: {
     comissaoPadrao: "1,50",
-    limiteDesconto: "5,00",
+    limiteDesconto: "10,00",
   },
 
   financeiro: {
@@ -203,6 +203,8 @@ export function ConfiguracoesPage() {
   } = useAuth()
 
   const podeAlterarConfiguracoesGerais = usuario?.perfil === "admin"
+  const podeAlterarConfiguracoesComerciais =
+    usuario?.perfil === "admin" || usuario?.perfil === "gerente"
 
   const [
     configuracoes,
@@ -383,6 +385,19 @@ export function ConfiguracoesPage() {
       return
     }
 
+    if (podeAlterarConfiguracoesComerciais) {
+      const limite = Number(
+        configuracoes.comercial.limiteDesconto.replace(",", ".")
+      )
+
+      if (!Number.isFinite(limite) || limite < 0 || limite > 10) {
+        toast.error(
+          "Informe um limite de desconto entre 0% e 10%."
+        )
+        return
+      }
+    }
+
     const resultadoConta =
       atualizarConta({
         nome: nomeConta,
@@ -399,7 +414,10 @@ export function ConfiguracoesPage() {
     }
 
     try {
-      if (podeAlterarConfiguracoesGerais) {
+      if (
+        podeAlterarConfiguracoesGerais ||
+        podeAlterarConfiguracoesComerciais
+      ) {
         localStorage.setItem(
           CHAVE,
           JSON.stringify(
@@ -511,8 +529,7 @@ export function ConfiguracoesPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         {podeAlterarConfiguracoesGerais && (
-          <>
-        <Card className="p-4">
+          <Card className="p-4">
           <div className="mb-4 flex items-start gap-3">
             <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg">
               <Building2 className="text-muted-foreground size-4" />
@@ -678,8 +695,10 @@ export function ConfiguracoesPage() {
             </div>
           </div>
         </Card>
+        )}
 
-        <Card className="p-4">
+        {podeAlterarConfiguracoesComerciais && (
+          <Card className="p-4">
           <div className="mb-4 flex items-start gap-3">
             <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg">
               <BadgePercent className="text-muted-foreground size-4" />
@@ -723,6 +742,7 @@ export function ConfiguracoesPage() {
                   }
                   className="pr-8"
                   inputMode="decimal"
+                  disabled={!podeAlterarConfiguracoesGerais}
                 />
 
                 <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[12px]">
@@ -768,15 +788,16 @@ export function ConfiguracoesPage() {
               </div>
 
               <p className="text-muted-foreground text-[11px]">
-                Referência para
-                negociações sem
-                aprovação gerencial.
+                Limite máximo permitido em vendas à vista.
+                Gerentes e administradores podem alterar este valor.
               </p>
             </div>
           </div>
         </Card>
+        )}
 
-        <Card className="p-4">
+        {podeAlterarConfiguracoesGerais && (
+          <Card className="p-4">
           <div className="mb-4 flex items-start gap-3">
             <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg">
               <WalletCards className="text-muted-foreground size-4" />
@@ -864,8 +885,6 @@ export function ConfiguracoesPage() {
             </div>
           </div>
         </Card>
-
-          </>
         )}
 
         <Card className="p-4">

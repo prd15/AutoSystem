@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 export type ClienteFormDados = {
   nome: string
+  sobrenome?: string
   cpf: string
   telefone: string
   email: string
@@ -13,9 +14,18 @@ export type ClienteFormDados = {
 
 export const clienteVazio: ClienteFormDados = {
   nome: "",
+  sobrenome: "",
   cpf: "",
   telefone: "",
   email: "",
+}
+
+function somenteLetras(valor: string) {
+  return valor.replace(/[^\p{L}\s]/gu, "").replace(/\s{2,}/g, " ")
+}
+
+function nomeValido(valor: string) {
+  return /^[\p{L}]+(?:\s+[\p{L}]+)*$/u.test(valor.trim())
 }
 
 function cpfValido(cpf: string) {
@@ -39,6 +49,15 @@ function cpfValido(cpf: string) {
   return calc(9) === Number(d[9]) && calc(10) === Number(d[10])
 }
 
+export function separarNomeCompleto(nomeCompleto: string) {
+  const partes = nomeCompleto.trim().split(/\s+/).filter(Boolean)
+
+  return {
+    nome: partes[0] ?? "",
+    sobrenome: partes.slice(1).join(" "),
+  }
+}
+
 export function validarCliente(
   c: ClienteFormDados,
   ignorarId?: number,
@@ -48,8 +67,18 @@ export function validarCliente(
 
   if (!c.nome.trim()) {
     e.nome = "Informe o nome do cliente."
-  } else if (c.nome.trim().length > 100) {
-    e.nome = "O nome deve ter até 100 caracteres."
+  } else if (!nomeValido(c.nome)) {
+    e.nome = "Use apenas letras no nome."
+  } else if (c.nome.trim().length > 50) {
+    e.nome = "O nome deve ter até 50 caracteres."
+  }
+
+  if (!c.sobrenome?.trim()) {
+    e.sobrenome = "Informe o sobrenome do cliente."
+  } else if (!nomeValido(c.sobrenome)) {
+    e.sobrenome = "Use apenas letras no sobrenome."
+  } else if (c.sobrenome.trim().length > 80) {
+    e.sobrenome = "O sobrenome deve ter até 80 caracteres."
   }
 
   const cpfAtual = c.cpf.replace(/\D/g, "")
@@ -106,20 +135,31 @@ export function ClienteForm({
 
   return (
     <div className={cn("grid gap-4", "sm:grid-cols-2")}>
-      <Field
-        label="Nome completo"
-        erro={erros.nome}
-        className="sm:col-span-2"
-      >
+      <Field label="Nome" erro={erros.nome}>
         {(p) => (
           <Input
             {...p}
             className={cn("bg-card", h)}
             value={dados.nome}
-            onChange={(e) => set("nome", e.target.value)}
-            placeholder="Marina Alves Ribeiro"
-            maxLength={100}
+            onChange={(e) => set("nome", somenteLetras(e.target.value))}
+            placeholder="Marina"
+            maxLength={50}
+            autoComplete="given-name"
             autoFocus
+          />
+        )}
+      </Field>
+
+      <Field label="Sobrenome" erro={erros.sobrenome}>
+        {(p) => (
+          <Input
+            {...p}
+            className={cn("bg-card", h)}
+            value={dados.sobrenome ?? ""}
+            onChange={(e) => set("sobrenome", somenteLetras(e.target.value))}
+            placeholder="Alves Ribeiro"
+            maxLength={80}
+            autoComplete="family-name"
           />
         )}
       </Field>
