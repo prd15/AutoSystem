@@ -18,8 +18,9 @@ verdade do comportamento**: cada rota reproduz o método do store citado.
   regras, mesma ordenação, mesmas mensagens de erro em português. Não inventar regra nova.
 - **JSON** em `snake_case` (já configurado: `spring.jackson.property-naming-strategy=SNAKE_CASE`).
 - **Datas** como `"yyyy-mm-dd"` (`LocalDate` nos DTOs).
-- **Dinheiro** como **número** com 2 casas (`BigDecimal` serializado como número, ex.
-  `142500.00`). Não mudar para string.
+- **Dinheiro:** `BigDecimal` no Java e `NUMERIC(12,2)` no banco, sempre (nunca `double`/`float`).
+  No JSON o `BigDecimal` sai como **número** com 2 casas (`142500.00`), não como string; é o
+  padrão do Jackson e o back atual já faz isso. Não trocar para `ToStringSerializer`.
 - **Percentual de comissão** como número em % (`1.5` = 1,5 %). **Taxa mensal** de
   financiamento como fração (`0.0189` = 1,89 % a.m.).
 - **Enums** com os mesmos valores do `store.ts`, em minúsculas (`disponivel`, `avista`,

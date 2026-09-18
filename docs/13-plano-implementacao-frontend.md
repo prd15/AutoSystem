@@ -1,6 +1,6 @@
 # 13 — Plano de implementação do front-end (sprint de 18/09/2026)
 
-Plano de execução para a equipe de front-end e para o agente de código dela. Cada etapa
+Plano de execução para a desenvolvedora de front-end (Thalía) e para o agente de código dela. Cada etapa
 corresponde a um card do Trello (board "AutoSystem | Product Backlog") e contém tudo o que
 o card diz, na ordem de execução. Objetivo da sprint: **todas as telas passam a usar a API
 e `frontend/src/data/store.ts` é apagado**, sem mudar o comportamento visível de nenhuma tela.
@@ -143,7 +143,7 @@ Arquivos: `features/clientes/clientes-page.tsx`, `cliente-dialog.tsx`, `cliente-
 ## Etapa 4 — Funcionários
 
 Card: parte de `[FRONT] Funcionários, Relatórios e bloco financeiro consumindo a API`
-(sugestão: abrir um card só para Funcionários). Precisa do back **B1 e B2**.
+. Precisa do back **B1 e B2**.
 
 Arquivo: `features/funcionarios/funcionarios-page.tsx`.
 - Lista, cadastro e edição via `funcionariosApi`; inativação pelo status (não há exclusão).
@@ -263,9 +263,9 @@ Card: `[FRONT] Login pelo back-end e remoção do store em memória`. Precisa do
 | 4 | 7 (Vendas), 8 (Visão geral), 9 (Relatórios), 10 (Configurações) | D1, D2, B4 |
 | 4 | 11 (Login + apagar store) | B3 |
 
-Com dois devs de front: um pega Estoque → Clientes → Funcionários → Vendas; o outro pega
-`src/api` → Financiamentos/Consórcios → Financeiro/Comissões → Relatórios/Configurações.
-Visão geral e Login ficam para quem terminar primeiro.
+Uma dev só no front: seguir a ordem das etapas (0 → 11). Enquanto o back ainda não entregou
+a etapa que a próxima tela precisa, adiantar a etapa 1 (`src/api`) por completo e escrever a
+tela contra o `tipos.ts`, testando com o back rodando localmente na branch do Lucas.
 
 ---
 
