@@ -4,6 +4,7 @@ import br.com.autosystem.cliente.Cliente;
 import br.com.autosystem.cliente.ClienteRepository;
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
+import br.com.autosystem.commons.exception.ValidacaoException;
 import br.com.autosystem.veiculo.StatusVeiculo;
 import br.com.autosystem.veiculo.Veiculo;
 import br.com.autosystem.veiculo.VeiculoRepository;
@@ -12,6 +13,7 @@ import br.com.autosystem.venda.dto.VendaResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -62,6 +64,8 @@ public class VendaService {
             throw new BusinessException("Este veiculo ja foi vendido.");
         }
 
+        validarDesconto(veiculo.getPreco(), req.valorVenda(), req.formaPagamento());
+
         Venda venda = new Venda();
         venda.setVeiculo(veiculo);
         venda.setCliente(cliente);
@@ -74,5 +78,18 @@ public class VendaService {
         veiculo.setStatus(StatusVeiculo.VENDIDO);
 
         return VendaResponse.from(salva);
+    }
+
+    // Desconto = preco de tabela menos o valor negociado (so quando ha desconto de fato;
+    // venda a tabela ou acima dela -- agio -- e sempre livre). Regra: desconto so em venda
+    // a vista. Erro 422 no campo valor_venda, como o formulario do front espera.
+    private void validarDesconto(BigDecimal preco, BigDecimal valorVenda, FormaPagamentoVenda forma) {
+        boolean temDesconto = preco != null && preco.signum() > 0 && valorVenda.compareTo(preco) < 0;
+        if (!temDesconto) {
+            return;
+        }
+        if (forma != FormaPagamentoVenda.AVISTA) {
+            throw new ValidacaoException("valor_venda", "Desconto só é permitido em vendas à vista.");
+        }
     }
 }
