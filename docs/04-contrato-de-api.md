@@ -122,7 +122,8 @@ placa, preço de tabela e nome do cliente (`vendas-page.tsx:181`):
 
 ### `POST /api/vendas` — endpoint transacional
 
-Corpo: `veiculo_id`, `cliente_id`, `vendedor`, `valor_venda`, `data_venda`.
+Corpo: `veiculo_id`, `cliente_id`, `vendedor`, `valor_venda`, `data_venda`, `forma_pagamento`
+(`avista` | `financiamento` | `consorcio`).
 
 Executa **em uma transação** (`store.ts:398`):
 
@@ -137,6 +138,14 @@ quatro KPIs logo depois.
 
 Erros: `409` "Este veículo já foi vendido." · `422` validações · `404` veículo ou cliente
 inexistente.
+
+**Regras de desconto** (`desconto = (preço de tabela − valor_venda) / preço`; venda acima da
+tabela — ágio — é sempre livre):
+
+- desconto só é permitido em venda **à vista** → senão `422` `campos.valor_venda`
+  "Desconto só é permitido em vendas à vista.";
+- desconto limitado a **10 %** → acima disso `422` `campos.valor_venda`
+  "O desconto máximo permitido é de 10%." (o teto virará `configuracoes.limite_desconto` no card B4).
 
 **Este é o endpoint que define a exigência de banco transacional.**
 
