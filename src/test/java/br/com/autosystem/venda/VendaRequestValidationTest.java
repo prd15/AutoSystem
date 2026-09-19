@@ -24,25 +24,35 @@ class VendaRequestValidationTest {
 
     @Test
     void dataFutura_geraViolacao() {
-        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("95000.00"), LocalDate.now().plusDays(1));
+        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("95000.00"),
+                LocalDate.now().plusDays(1), FormaPagamentoVenda.AVISTA);
         assertThat(validator.validate(req)).anyMatch(v -> v.getPropertyPath().toString().equals("dataVenda"));
     }
 
     @Test
     void valorZeroOuNegativo_geraViolacao() {
-        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("0.00"), LocalDate.now());
+        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("0.00"),
+                LocalDate.now(), FormaPagamentoVenda.AVISTA);
         assertThat(validator.validate(req)).anyMatch(v -> v.getPropertyPath().toString().equals("valorVenda"));
     }
 
     @Test
     void veiculoIdNulo_geraViolacao() {
-        var req = new VendaRequest(null, 2L, "Alan", new BigDecimal("95000.00"), LocalDate.now());
+        var req = new VendaRequest(null, 2L, "Alan", new BigDecimal("95000.00"),
+                LocalDate.now(), FormaPagamentoVenda.AVISTA);
         assertThat(validator.validate(req)).anyMatch(v -> v.getPropertyPath().toString().equals("veiculoId"));
     }
 
     @Test
+    void formaPagamentoNula_geraViolacao() {
+        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("95000.00"), LocalDate.now(), null);
+        assertThat(validator.validate(req)).anyMatch(v -> v.getPropertyPath().toString().equals("formaPagamento"));
+    }
+
+    @Test
     void requestValido_semViolacoes() {
-        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("95000.00"), LocalDate.now());
+        var req = new VendaRequest(1L, 2L, "Alan", new BigDecimal("95000.00"),
+                LocalDate.now(), FormaPagamentoVenda.AVISTA);
         assertThat(validator.validate(req)).isEmpty();
     }
 }

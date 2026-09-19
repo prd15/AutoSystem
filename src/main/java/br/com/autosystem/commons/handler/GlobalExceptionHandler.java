@@ -2,6 +2,7 @@ package br.com.autosystem.commons.handler;
 
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
+import br.com.autosystem.commons.exception.ValidacaoException;
 import br.com.autosystem.veiculo.VeiculoComVendaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,17 @@ public class GlobalExceptionHandler {
             campos.putIfAbsent(fe.getField(), fe.getDefaultMessage());
         }
         pd.setProperty("campos", campos);
+        return pd;
+    }
+
+    // Regra de campo checada no service (ex.: desconto). Mesmo 422 e formato das validacoes
+    // de Bean Validation, com a chave do campo ja em snake_case.
+    @ExceptionHandler(ValidacaoException.class)
+    public ProblemDetail handleValidacaoDeCampo(ValidacaoException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        pd.setTitle("Dados invalidos");
+        pd.setProperty("erro", ex.getMessage());
+        pd.setProperty("campos", ex.getCampos());
         return pd;
     }
 

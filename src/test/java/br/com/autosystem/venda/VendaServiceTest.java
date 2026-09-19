@@ -4,6 +4,7 @@ import br.com.autosystem.cliente.Cliente;
 import br.com.autosystem.cliente.ClienteRepository;
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
+import br.com.autosystem.commons.exception.ValidacaoException;
 import br.com.autosystem.veiculo.StatusVeiculo;
 import br.com.autosystem.veiculo.Veiculo;
 import br.com.autosystem.veiculo.VeiculoRepository;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -60,7 +62,8 @@ class VendaServiceTest {
     }
 
     private VendaRequest req() {
-        return new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("95000.00"), LocalDate.of(2026, 9, 10));
+        return new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("95000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
     }
 
     @Test
@@ -102,5 +105,64 @@ class VendaServiceTest {
         when(clienteRepository.findById(2L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.registrar(req())).isInstanceOf(EntityNotFoundException.class);
         verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void registrar_descontoEmFormaNaoAVista_lancaValidacao_eNaoSalva() {
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo(StatusVeiculo.DISPONIVEL)));
+        when(clienteRepository.findById(2L)).thenReturn(Optional.of(cliente()));
+
+        // 95000 num carro de 100000 = 5% de desconto, mas a forma nao e a vista.
+        var req = new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("95000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.FINANCIAMENTO);
+
+        ValidacaoException ex = catchThrowableOfType(() -> service.registrar(req), ValidacaoException.class);
+        assertThat(ex.getCampos()).containsEntry("valor_venda", "Desconto é permitido somente em vendas à vista.");
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void registrar_descontoAVistaAcimaDoTeto_lancaValidacao_eNaoSalva() {
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo(StatusVeiculo.DISPONIVEL)));
+        when(clienteRepository.findById(2L)).thenReturn(Optional.of(cliente()));
+
+        // 85000 num carro de 100000 = 15% de desconto, acima do teto de 10%.
+        var req = new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("85000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
+
+        ValidacaoException ex = catchThrowableOfType(() -> service.registrar(req), ValidacaoException.class);
+        assertThat(ex.getCampos()).containsEntry("valor_venda",
+                "O desconto de 15,00% ultrapassa o limite permitido de 10,00%.");
+        verify(vendaRepository, never()).save(any());
+    }
+
+    @Test
+    void registrar_descontoAVistaNoLimite_ehPermitido() {
+        Veiculo v = veiculo(StatusVeiculo.DISPONIVEL);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(v));
+        when(clienteRepository.findById(2L)).thenReturn(Optional.of(cliente()));
+        when(vendaRepository.save(any(Venda.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // 90000 num carro de 100000 = exatamente 10% -> no limite, permitido.
+        var req = new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("90000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.AVISTA);
+
+        service.registrar(req);
+        assertThat(v.getStatus()).isEqualTo(StatusVeiculo.VENDIDO);
+    }
+
+    @Test
+    void registrar_agioEmFormaNaoAVista_ehPermitido() {
+        Veiculo v = veiculo(StatusVeiculo.DISPONIVEL);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(v));
+        when(clienteRepository.findById(2L)).thenReturn(Optional.of(cliente()));
+        when(vendaRepository.save(any(Venda.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Venda acima da tabela (agio) nao e desconto -> livre em qualquer forma.
+        var req = new VendaRequest(1L, 2L, "Alan Ferreira", new BigDecimal("110000.00"),
+                LocalDate.of(2026, 9, 10), FormaPagamentoVenda.FINANCIAMENTO);
+
+        service.registrar(req);
+        assertThat(v.getStatus()).isEqualTo(StatusVeiculo.VENDIDO);
     }
 }
