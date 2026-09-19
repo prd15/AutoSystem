@@ -441,7 +441,9 @@ Caso o navegador já possua dados de uma versão anterior do AutoSystem, pode se
 No Console do navegador:
 
 localStorage.removeItem("autosystem.usuarios")
+
 localStorage.removeItem("autosystem.sessao")
+
 location.reload()
 
 Essa limpeza é necessária apenas no ambiente de desenvolvimento quando houver dados antigos armazenados no navegador. Depois que o novo seed for carregado, não é necessário repetir o procedimento em cada acesso.
@@ -587,6 +589,10 @@ Para integração futura com a API:
 | `docs/09-modelo-conceitual-mer.md` | Modelo conceitual e MER |
 
 | `docs/10-evolucao-funcional-frontend.md` | Evolução funcional implementada no front-end |
+
+| docs/11-auditoria-2026-09-17.md | Auditoria de 17/09/2026: achados, evidências e como reproduzir |
+| docs/12-plano-implementacao-backend.md | Plano de implementação do back-end para a sprint de 18/09/2026 |
+| docs/13-plano-implementacao-frontend.md | Plano de implementação do front-end para a sprint de 18/09/2026 |*
 
 | `docs/autosystem-escopo-primeira-entrega.md` | Escopo original da primeira entrega |
 

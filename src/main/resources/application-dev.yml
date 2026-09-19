@@ -1,0 +1,11 @@
+spring:
+  # Dev: o Boot sobe o Postgres do compose.yaml e injeta a datasource automaticamente.
+  docker:
+    compose:
+      enabled: true
+      lifecycle-management: start-and-stop
+  # Alem das migrations, carrega o seed de exemplo (callback afterMigrate).
+  flyway:
+    locations: classpath:db/migration,classpath:db/dev
+  jpa:
+    show-sql: ${SHOW_SQL:false}

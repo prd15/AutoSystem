@@ -1,0 +1,8 @@
+spring:
+  # Teste: sem compose; o Postgres vem do Testcontainers (@ServiceConnection).
+  docker:
+    compose:
+      enabled: false
+  # So as migrations reais; sem seed de dev.
+  flyway:
+    locations: classpath:db/migration
