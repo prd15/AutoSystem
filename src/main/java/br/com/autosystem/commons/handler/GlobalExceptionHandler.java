@@ -2,6 +2,7 @@ package br.com.autosystem.commons.handler;
 
 import br.com.autosystem.commons.exception.BusinessException;
 import br.com.autosystem.commons.exception.EntityNotFoundException;
+import br.com.autosystem.commons.exception.ValidacaoException;
 import br.com.autosystem.veiculo.VeiculoComVendaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,17 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    // Regra de campo checada no service (ex.: desconto). Mesmo 422 e formato das validacoes
+    // de Bean Validation, com a chave do campo ja em snake_case.
+    @ExceptionHandler(ValidacaoException.class)
+    public ProblemDetail handleValidacaoDeCampo(ValidacaoException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        pd.setTitle("Dados invalidos");
+        pd.setProperty("erro", ex.getMessage());
+        pd.setProperty("campos", ex.getCampos());
+        return pd;
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ProblemDetail handleNaoEncontrado(EntityNotFoundException ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
@@ -52,6 +64,10 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         pd.setTitle("Conflito de regra");
         pd.setProperty("erro", ex.getMessage());
+        // Conflito de campo especifico (ex.: CPF duplicado) -> destaca o campo no front.
+        if (ex.getCampos() != null) {
+            pd.setProperty("campos", ex.getCampos());
+        }
         return pd;
     }
 

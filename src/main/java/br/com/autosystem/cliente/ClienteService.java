@@ -21,9 +21,14 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public List<ClienteResponse> listar(String busca) {
-        List<Cliente> clientes = (busca == null || busca.isBlank())
-                ? repository.findAll(Sort.by(Sort.Direction.ASC, "nome"))
-                : repository.buscar(busca.trim());
+        List<Cliente> clientes;
+        if (busca == null || busca.isBlank()) {
+            clientes = repository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        } else {
+            String termo = busca.trim();
+            // Passa tambem o termo so com digitos para casar CPF digitado com mascara.
+            clientes = repository.buscar(termo, soDigitos(termo));
+        }
         return clientes.stream().map(ClienteResponse::from).toList();
     }
 
@@ -79,7 +84,9 @@ public class ClienteService {
         repository.findByCpf(cpf)
                 .filter(existente -> idAtual == null || !existente.getId().equals(idAtual))
                 .ifPresent(existente -> {
-                    throw new BusinessException("CPF ja cadastrado.");
+                    // Mesma mensagem do front (store.criarCliente) e no campo cpf.
+                    String msg = "Já existe um cliente com este CPF.";
+                    throw new BusinessException(msg, "cpf", msg);
                 });
     }
 }

@@ -55,7 +55,8 @@ class VendaServiceIntegrationTest extends IntegracaoTest {
         Long clienteId = novoCliente();
 
         var resp = vendaService.registrar(
-                new VendaRequest(veiculoId, clienteId, "Alan Ferreira", new BigDecimal("95000.00"), LocalDate.now()));
+                new VendaRequest(veiculoId, clienteId, "Alan Ferreira", new BigDecimal("95000.00"),
+                        LocalDate.now(), FormaPagamentoVenda.AVISTA));
 
         assertThat(resp.id()).isNotNull();
         assertThat(resp.diferenca()).isEqualByComparingTo("5000.00");
@@ -71,10 +72,12 @@ class VendaServiceIntegrationTest extends IntegracaoTest {
         Long veiculoId = novoVeiculo();
         Long clienteId = novoCliente();
         vendaService.registrar(
-                new VendaRequest(veiculoId, clienteId, "Alan", new BigDecimal("95000.00"), LocalDate.now()));
+                new VendaRequest(veiculoId, clienteId, "Alan", new BigDecimal("95000.00"),
+                        LocalDate.now(), FormaPagamentoVenda.AVISTA));
 
         assertThatThrownBy(() -> vendaService.registrar(
-                new VendaRequest(veiculoId, clienteId, "Bruna", new BigDecimal("90000.00"), LocalDate.now())))
+                new VendaRequest(veiculoId, clienteId, "Bruna", new BigDecimal("90000.00"),
+                        LocalDate.now(), FormaPagamentoVenda.AVISTA)))
                 .isInstanceOf(BusinessException.class);
 
         assertThat(vendaRepository.count()).isEqualTo(1);

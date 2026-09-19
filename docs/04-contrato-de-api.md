@@ -87,9 +87,9 @@ Pode ser `GET /api/veiculos?vendavel=true` — decisão de estilo.
 
 | Método | Rota | Notas |
 |---|---|---|
-| `GET` | `/api/clientes?busca=` | Busca por nome, CPF (sem pontuação) ou e-mail; ordena por nome |
+| `GET` | `/api/clientes?busca=` | Busca por nome, e-mail ou CPF; o termo do CPF é normalizado (só dígitos), então acha mesmo digitado com máscara (`482.113.900-27`) |
 | `GET` | `/api/clientes/{id}` | |
-| `POST` | `/api/clientes` | `409` quando o CPF já existe; `422` com erros por campo |
+| `POST` | `/api/clientes` | Aceita CPF com ou sem máscara (`@CPF` valida o dígito; guarda só dígitos). `409` com `campos.cpf` "Já existe um cliente com este CPF." quando o CPF já existe; `422` com erros por campo |
 
 A listagem da tela precisa de campos derivados por cliente (`clientes-page.tsx:29`):
 
@@ -122,7 +122,8 @@ placa, preço de tabela e nome do cliente (`vendas-page.tsx:181`):
 
 ### `POST /api/vendas` — endpoint transacional
 
-Corpo: `veiculo_id`, `cliente_id`, `vendedor`, `valor_venda`, `data_venda`.
+Corpo: `veiculo_id`, `cliente_id`, `vendedor`, `valor_venda`, `data_venda`, `forma_pagamento`
+(`avista` | `financiamento` | `consorcio`).
 
 Executa **em uma transação** (`store.ts:398`):
 
@@ -137,6 +138,17 @@ quatro KPIs logo depois.
 
 Erros: `409` "Este veículo já foi vendido." · `422` validações · `404` veículo ou cliente
 inexistente.
+
+**Regras de desconto** (`desconto = (preço de tabela − valor_venda) / preço`; venda acima da
+tabela — ágio — é sempre livre):
+
+- desconto só é permitido em venda **à vista** → senão `422` `campos.valor_venda`
+  "Desconto é permitido somente em vendas à vista.";
+- desconto limitado a **10 %** → acima disso `422` `campos.valor_venda`
+  "O desconto de {X}% ultrapassa o limite permitido de 10,00%." (percentual com 2 casas e
+  vírgula; o teto virará `configuracoes.limite_desconto` no card B4).
+
+> Mensagens idênticas às do front (`store.validarDescontoVenda`), que é a fonte da verdade.
 
 **Este é o endpoint que define a exigência de banco transacional.**
 

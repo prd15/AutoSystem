@@ -1,5 +1,6 @@
 package br.com.autosystem.venda.dto;
 
+import br.com.autosystem.venda.FormaPagamentoVenda;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +10,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-// JSON em snake_case: veiculo_id, cliente_id, valor_venda, data_venda.
+// JSON em snake_case: veiculo_id, cliente_id, valor_venda, data_venda, forma_pagamento.
 public record VendaRequest(
 
         @NotNull(message = "O veiculo e obrigatorio")
@@ -28,6 +29,9 @@ public record VendaRequest(
 
         @NotNull(message = "A data da venda e obrigatoria")
         @PastOrPresent(message = "A data da venda nao pode ser futura")
-        LocalDate dataVenda
+        LocalDate dataVenda,
+
+        @NotNull(message = "A forma de pagamento e obrigatoria")
+        FormaPagamentoVenda formaPagamento
 ) {
 }

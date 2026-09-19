@@ -32,9 +32,18 @@ class ClienteRepositoryIntegrationTest extends IntegracaoTest {
         repository.save(cliente("Ana Souza", "11111111111", "ana@x.com"));
         repository.save(cliente("Bruno Lima", "22222222222", "bruno@y.com"));
 
-        assertThat(repository.buscar("ana")).hasSize(1);
-        assertThat(repository.buscar("bruno@y")).hasSize(1);
-        assertThat(repository.buscar("2222")).hasSize(1);
-        assertThat(repository.buscar("souza")).hasSize(1);
+        assertThat(repository.buscar("ana", "")).hasSize(1);
+        assertThat(repository.buscar("bruno@y", "")).hasSize(1);
+        assertThat(repository.buscar("2222", "2222")).hasSize(1);
+        assertThat(repository.buscar("souza", "")).hasSize(1);
+    }
+
+    @Test
+    void buscar_comTermoCpfVazio_naoCasaTodosPeloCpf() {
+        repository.save(cliente("Ana Souza", "11111111111", "ana@x.com"));
+        repository.save(cliente("Bruno Lima", "22222222222", "bruno@y.com"));
+
+        // Termo que nao bate em nome/email e sem digitos -> nenhum resultado (o CPF nao entra).
+        assertThat(repository.buscar("zzz", "")).isEmpty();
     }
 }
