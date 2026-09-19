@@ -12,12 +12,14 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByCpf(String cpf);
 
     // Busca por nome, e-mail ou CPF (parametrizada — sem SQL Injection). Ordena por nome.
+    // O CPF e guardado so com digitos; por isso a comparacao de CPF usa 'termoCpf' (o termo
+    // sem mascara), so quando ele tem digitos -- assim "482.113.900-27" encontra o cliente.
     @Query("""
             select c from Cliente c
             where lower(c.nome) like lower(concat('%', :termo, '%'))
                or lower(coalesce(c.email, '')) like lower(concat('%', :termo, '%'))
-               or c.cpf like concat('%', :termo, '%')
+               or (:termoCpf <> '' and c.cpf like concat('%', :termoCpf, '%'))
             order by c.nome
             """)
-    List<Cliente> buscar(@Param("termo") String termo);
+    List<Cliente> buscar(@Param("termo") String termo, @Param("termoCpf") String termoCpf);
 }

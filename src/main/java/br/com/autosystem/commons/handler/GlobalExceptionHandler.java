@@ -64,6 +64,10 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         pd.setTitle("Conflito de regra");
         pd.setProperty("erro", ex.getMessage());
+        // Conflito de campo especifico (ex.: CPF duplicado) -> destaca o campo no front.
+        if (ex.getCampos() != null) {
+            pd.setProperty("campos", ex.getCampos());
+        }
         return pd;
     }
 
