@@ -40,25 +40,93 @@ export const moedaCampo = (n: number) =>
 export const numero = (n: number) =>
   inteiro.format(n)
 
-export const dataBR = (iso: string) => {
-  if (!iso) {
+type PartesData = {
+  ano: number
+  mes: number
+  dia: number
+}
+
+function partesData(
+  valor: string | Date | null | undefined
+): PartesData | null {
+  if (valor == null || valor === "") {
+    return null
+  }
+
+  if (valor instanceof Date) {
+    if (Number.isNaN(valor.getTime())) {
+      return null
+    }
+
+    return {
+      ano: valor.getFullYear(),
+      mes: valor.getMonth() + 1,
+      dia: valor.getDate(),
+    }
+  }
+
+  const texto = String(valor).trim()
+  const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})/)
+
+  if (iso) {
+    const ano = Number(iso[1])
+    const mes = Number(iso[2])
+    const dia = Number(iso[3])
+    const data = new Date(ano, mes - 1, dia)
+
+    if (
+      data.getFullYear() === ano &&
+      data.getMonth() === mes - 1 &&
+      data.getDate() === dia
+    ) {
+      return { ano, mes, dia }
+    }
+
+    return null
+  }
+
+  const data = new Date(texto)
+
+  if (Number.isNaN(data.getTime())) {
+    return null
+  }
+
+  return {
+    ano: data.getFullYear(),
+    mes: data.getMonth() + 1,
+    dia: data.getDate(),
+  }
+}
+
+export const dataBR = (
+  valor: string | Date | null | undefined
+) => {
+  if (valor == null || valor === "") {
     return ""
   }
 
-  const [a, m, d] = iso.split("-")
+  const partes = partesData(valor)
 
-  if (!a || !m || !d) {
-    return iso
+  if (!partes) {
+    return String(valor)
   }
 
-  return `${d}/${m}/${a}`
+  return `${String(partes.dia).padStart(2, "0")}/${String(
+    partes.mes
+  ).padStart(2, "0")}/${String(partes.ano).padStart(4, "0")}`
 }
 
 /** "12 set" — para listas compactas. */
-export const dataCurta = (iso: string) => {
-  const [a, m, d] = iso.split("-").map(Number)
+export const dataCurta = (
+  valor: string | Date | null | undefined
+) => {
+  const partes = partesData(valor)
 
-  return new Date(a, m - 1, d)
+  if (!partes) {
+    return ""
+  }
+
+  return new Date(partes.ano, partes.mes - 1, partes.dia)
     .toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "short",
@@ -66,23 +134,32 @@ export const dataCurta = (iso: string) => {
     .replace(".", "")
 }
 
-export const hojeISO = () =>
-  new Date().toISOString().slice(0, 10)
+export const hojeISO = () => {
+  const hoje = new Date()
 
-export const diasDesde = (iso: string) => {
-  const [a, m, d] = iso.split("-").map(Number)
+  return `${String(hoje.getFullYear()).padStart(4, "0")}-${String(
+    hoje.getMonth() + 1
+  ).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`
+}
 
-  const inicio = new Date(
-    a,
-    m - 1,
-    d
-  ).getTime()
+export const diasDesde = (
+  valor: string | Date | null | undefined
+) => {
+  const partes = partesData(valor)
+
+  if (!partes) {
+    return 0
+  }
+
+  const inicio = new Date(partes.ano, partes.mes - 1, partes.dia)
+  inicio.setHours(0, 0, 0, 0)
+
+  const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
 
   return Math.max(
     0,
-    Math.floor(
-      (Date.now() - inicio) / 86_400_000
-    )
+    Math.floor((hoje.getTime() - inicio.getTime()) / 86_400_000)
   )
 }
 
