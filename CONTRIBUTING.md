@@ -182,8 +182,8 @@ git push --force-with-lease
 **Revisão:** todo PR é revisado por outra pessoa do time antes do merge. Ninguém mescla o
 próprio PR sem revisão. PR com CI vermelho ou com conflito não é mesclado.
 
-Depois do merge, apague a branch (no botão do GitHub e localmente com
-`git branch -d <nome>`) e volte para a `main` com `git pull`.
+Depois do merge, volte para a `main` com `git pull` antes de começar o próximo card. A branch
+mesclada **não é apagada**: fica no repositório como histórico do card.
 
 ---
 
