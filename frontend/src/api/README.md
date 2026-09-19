@@ -7,9 +7,9 @@ back-end Spring Boot.
 | Arquivo | Conteúdo |
 |---|---|
 | `client.ts` | `fetch` com base `/api`, JSON, query string, `ApiError` com `status`, `campos` e `dados` |
-| `tipos.ts` | DTOs de transporte. Dinheiro é `Decimal` (string), data é `yyyy-mm-dd` |
-| `veiculos.ts`, `clientes.ts`, `vendas.ts`, `indicadores.ts` | Escopo da primeira entrega |
-| `financeiro.ts` | Lançamentos, resumo, comissões, financiamentos (fora do escopo aprovado) |
+| `tipos.ts` | DTOs de transporte. Dinheiro é `Decimal` (`number` no JSON) e data é `yyyy-mm-dd` |
+| `veiculos.ts`, `clientes.ts`, `vendas.ts`, `usuarios.ts`, `indicadores.ts` | Recursos tipados da API |
+| `financeiro.ts` | Lançamentos, resumo, comissões e financiamentos |
 
 ## Mapa store → api
 
@@ -28,7 +28,11 @@ back-end Spring Boot.
 | `criarCliente(dados)` | `clientesApi.criar(dados)` | `POST /api/clientes` |
 | `cpfEmUso(cpf)` | validação do servidor (409) | — |
 | `listarVendas({de, ate})` | `vendasApi.listar(periodo)` | `GET /api/vendas` |
+| `obterVenda(id)` | `vendasApi.obter(id)` | `GET /api/vendas/{id}` |
 | `registrarVenda(dados)` | `vendasApi.registrar(dados)` | `POST /api/vendas` |
+| usuários | `usuariosApi.listar(busca)` | `GET /api/usuarios` |
+| obter usuário | `usuariosApi.obter(id)` | `GET /api/usuarios/{id}` |
+| criar usuário | `usuariosApi.criar(dados)` | `POST /api/usuarios` |
 | `indicadores()` | `indicadoresApi.resumo()` | `GET /api/indicadores` |
 | `faturamentoPorMes()` | `indicadoresApi.faturamentoMensal(6)` | `GET /api/indicadores/faturamento-mensal` |
 | `estoquePorMarca()` | `indicadoresApi.estoquePorMarca()` | `GET /api/indicadores/estoque-por-marca` |
@@ -42,8 +46,8 @@ back-end Spring Boot.
 
 1. Trocar a leitura síncrona do `store` por um `useEffect` (ou React Query, se a equipe
    preferir) chamando a função equivalente daqui, com estado de carregamento e erro.
-2. Converter `Decimal` → `number` na entrada da tela com `decimalParaNumero`, e
-   `number` → `Decimal` ao enviar com `numeroParaDecimal`.
+2. Valores monetários já são transportados como `number` no JSON. Não é necessária
+   conversão entre string decimal e `number` na camada de API.
 3. Nos formulários, capturar `ApiError`: `erro` vai para o toast, `campos` vai para os
    erros por campo, que já existem em `Field`.
 4. Ao gravar, recarregar a lista (ou atualizar o item na memória) em vez de confiar no
@@ -52,20 +56,38 @@ back-end Spring Boot.
 Exemplo mínimo:
 
 ```ts
-import { ApiError, veiculosApi, decimalParaNumero } from "@/api"
+import { ApiError, veiculosApi } from "@/api"
 
-const [lista, setLista] = useState<Veiculo[]>([])
+const [lista, setLista] = useState<VeiculoDTO[]>([])
 const [erro, setErro] = useState<string | null>(null)
 
 useEffect(() => {
   const ctrl = new AbortController()
+
   veiculosApi
     .listar({ busca, status }, ctrl.signal)
-    .then((r) => setLista(r.itens.map((v) => ({ ...v, preco: decimalParaNumero(v.preco), placa: v.placa ?? "" }))))
-    .catch((e) => { if (!(e instanceof DOMException)) setErro(e instanceof ApiError ? e.message : "Erro inesperado.") })
+    .then((r) => setLista(r.itens))
+    .catch((e) => {
+      if (!(e instanceof DOMException)) {
+        setErro(e instanceof ApiError ? e.message : "Erro inesperado.")
+      }
+    })
+
   return () => ctrl.abort()
 }, [busca, status])
 ```
+
+## Usuários
+
+A camada de usuários acompanha os endpoints disponíveis no back-end:
+
+- `usuariosApi.listar(busca)` → `GET /api/usuarios`
+- `usuariosApi.obter(id)` → `GET /api/usuarios/{id}`
+- `usuariosApi.criar(dados)` → `POST /api/usuarios`
+
+Os perfis aceitos são `ADMIN`, `GERENTE` e `VENDEDOR`. No cadastro, `perfil` é opcional;
+quando não informado, o back-end assume `VENDEDOR`. A senha é enviada apenas no cadastro
+e nunca faz parte de `UsuarioDTO`.
 
 ## Configuração
 

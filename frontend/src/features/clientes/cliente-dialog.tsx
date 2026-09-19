@@ -11,10 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { store } from "@/data/store"
-
 import {
   ClienteForm,
   clienteVazio,
+  separarNomeCompleto,
   validarCliente,
   type ClienteFormDados,
 } from "./cliente-form"
@@ -33,7 +33,6 @@ export function ClienteDialog({
     Partial<Record<keyof ClienteFormDados, string>>
   >({})
   const [cpfOriginal, setCpfOriginal] = useState("")
-
   const editando = clienteId !== null
 
   useEffect(() => {
@@ -55,9 +54,12 @@ export function ClienteDialog({
       return
     }
 
+    const nomeSeparado = separarNomeCompleto(cliente.nome)
+
     setCpfOriginal(cliente.cpf)
     setDados({
-      nome: cliente.nome,
+      nome: nomeSeparado.nome,
+      sobrenome: nomeSeparado.sobrenome,
       cpf: cliente.cpf,
       telefone: cliente.telefone,
       email: cliente.email,
@@ -77,8 +79,9 @@ export function ClienteDialog({
 
     if (Object.keys(encontrados).length > 0) return
 
+    const nomeCompleto = `${dados.nome.trim()} ${dados.sobrenome?.trim() ?? ""}`.trim()
     const payload = {
-      nome: dados.nome.trim(),
+      nome: nomeCompleto,
       cpf: dados.cpf,
       telefone: dados.telefone,
       email: dados.email.trim(),
@@ -95,18 +98,29 @@ export function ClienteDialog({
       }
 
       toast.success("Cliente atualizado", {
-        description: payload.nome,
+        description: nomeCompleto,
       })
       onOpenChange(false)
       return
     }
 
-    store.criarCliente(payload)
+    const resultado = store.criarCliente(payload)
+
+    if ("erro" in resultado) {
+      setErros((atuais) => ({
+        ...atuais,
+        cpf: resultado.erro,
+      }))
+
+      toast.error("Não foi possível cadastrar o cliente", {
+        description: resultado.erro,
+      })
+      return
+    }
 
     toast.success("Cliente cadastrado", {
-      description: payload.nome,
+      description: nomeCompleto,
     })
-
     onOpenChange(false)
   }
 
@@ -118,11 +132,10 @@ export function ClienteDialog({
             <DialogTitle className="text-[17px] tracking-[-0.01em]">
               {editando ? "Editar cliente" : "Novo cliente"}
             </DialogTitle>
-
             <DialogDescription className="text-[13px]">
               {editando
                 ? "Atualize os dados cadastrais do cliente."
-                : "CPF único. E-mail é opcional."}
+                : "Nome e sobrenome são obrigatórios. CPF único. E-mail é opcional."}
             </DialogDescription>
           </DialogHeader>
 
@@ -142,7 +155,6 @@ export function ClienteDialog({
             >
               Cancelar
             </Button>
-
             <Button type="submit" className="min-w-28">
               {editando ? "Salvar alterações" : "Cadastrar"}
             </Button>

@@ -260,13 +260,20 @@ export function FinanciamentoSheet({
 
     const cliente =
       store.criarCliente({
-        nome: novoCliente.nome.trim(),
+        nome: `${novoCliente.nome.trim()} ${novoCliente.sobrenome?.trim() ?? ""}`.trim(),
         cpf: novoCliente.cpf.trim(),
         telefone:
           novoCliente.telefone.trim(),
         email:
           novoCliente.email.trim(),
       })
+
+    if ("erro" in cliente) {
+      toast.error("Não foi possível cadastrar o cliente.", {
+        description: cliente.erro,
+      })
+      return
+    }
 
     setClienteId(
       String(cliente.id)

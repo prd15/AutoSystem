@@ -1,8 +1,26 @@
-import { Calculator, Car, Landmark, Moon, Plus, Receipt, Sun, UserPlus } from "lucide-react"
+import {
+  Calculator,
+  Car,
+  Landmark,
+  Moon,
+  Plus,
+  Receipt,
+  Sun,
+  UserPlus,
+} from "lucide-react"
 
-import { ROTAS, useApp, type Rota } from "@/app-context"
+import {
+  ROTAS,
+  useApp,
+  type Rota,
+} from "@/app-context"
+
+import { useAuth } from "@/auth-context"
+
 import { StatusDot } from "@/components/status-badge"
+
 import { useTheme } from "@/components/theme-provider"
+
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,7 +31,13 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
-import { ROTULO_STATUS, store, useEstado } from "@/data/store"
+
+import {
+  ROTULO_STATUS,
+  store,
+  useEstado,
+} from "@/data/store"
+
 import { moedaCurta } from "@/lib/format"
 
 /**
@@ -22,18 +46,45 @@ import { moedaCurta } from "@/lib/format"
  */
 export function CommandPalette() {
   useEstado()
-  const { paleta, setPaleta, navegar, setNovoVeiculo, setVenda, setNovoCliente, setNovoLancamento, setSimulador, setBuscaEstoque } =
-    useApp()
-  const { temaResolvido, setTema } = useTheme()
+
+  const {
+    paleta,
+    setPaleta,
+    navegar,
+    setNovoVeiculo,
+    setVenda,
+    setNovoCliente,
+    setNovoLancamento,
+    setSimulador,
+    setBuscaEstoque,
+  } = useApp()
+
+  const { usuario } = useAuth()
+
+  const {
+    temaResolvido,
+    setTema,
+  } = useTheme()
+
+  const podeGerenciarEstoque =
+    usuario?.perfil === "admin" ||
+    usuario?.perfil === "gerente"
 
   const fechar = () => setPaleta(false)
+
   const ir = (r: Rota) => {
     navegar(r)
     fechar()
   }
 
-  const rotasAtivas = (Object.keys(ROTAS) as Rota[]).filter((r) => !ROTAS[r].emBreve)
-  const veiculos = store.listarVeiculos()
+  const rotasAtivas = (
+    Object.keys(ROTAS) as Rota[]
+  ).filter(
+    (r) => !ROTAS[r].emBreve
+  )
+
+  const veiculos =
+    store.listarVeiculos()
 
   return (
     <CommandDialog
@@ -44,22 +95,33 @@ export function CommandPalette() {
       showCloseButton={false}
       className="glass shadow-pop top-[18%] translate-y-0 overflow-hidden rounded-2xl border-0 p-0 sm:max-w-[600px]"
     >
-      <CommandInput placeholder="Buscar veículo, tela ou ação…" className="h-12 text-[15px]" />
+      <CommandInput
+        placeholder="Buscar veículo, tela ou ação…"
+        className="h-12 text-[15px]"
+      />
+
       <CommandList className="scroll-mac max-h-[380px]">
-        <CommandEmpty>Nada encontrado.</CommandEmpty>
+        <CommandEmpty>
+          Nada encontrado.
+        </CommandEmpty>
 
         <CommandGroup heading="Ações">
-          <CommandItem
-            onSelect={() => {
-              navegar("estoque")
-              setNovoVeiculo(true)
-              fechar()
-            }}
-          >
-            <Plus />
-            Cadastrar veículo
-            <CommandShortcut>N</CommandShortcut>
-          </CommandItem>
+          {podeGerenciarEstoque && (
+            <CommandItem
+              onSelect={() => {
+                navegar("estoque")
+                setNovoVeiculo(true)
+                fechar()
+              }}
+            >
+              <Plus />
+              Cadastrar veículo
+              <CommandShortcut>
+                N
+              </CommandShortcut>
+            </CommandItem>
+          )}
+
           <CommandItem
             onSelect={() => {
               navegar("vendas")
@@ -69,8 +131,11 @@ export function CommandPalette() {
           >
             <Receipt />
             Registrar venda
-            <CommandShortcut>V</CommandShortcut>
+            <CommandShortcut>
+              V
+            </CommandShortcut>
           </CommandItem>
+
           <CommandItem
             onSelect={() => {
               navegar("clientes")
@@ -81,6 +146,7 @@ export function CommandPalette() {
             <UserPlus />
             Novo cliente
           </CommandItem>
+
           <CommandItem
             onSelect={() => {
               navegar("financeiro")
@@ -91,6 +157,7 @@ export function CommandPalette() {
             <Landmark />
             Novo lançamento no caixa
           </CommandItem>
+
           <CommandItem
             onSelect={() => {
               navegar("financeiro")
@@ -101,14 +168,26 @@ export function CommandPalette() {
             <Calculator />
             Simular financiamento
           </CommandItem>
+
           <CommandItem
             onSelect={() => {
-              setTema(temaResolvido === "dark" ? "light" : "dark")
+              setTema(
+                temaResolvido === "dark"
+                  ? "light"
+                  : "dark"
+              )
               fechar()
             }}
           >
-            {temaResolvido === "dark" ? <Sun /> : <Moon />}
-            {temaResolvido === "dark" ? "Tema claro" : "Tema escuro"}
+            {temaResolvido === "dark" ? (
+              <Sun />
+            ) : (
+              <Moon />
+            )}
+
+            {temaResolvido === "dark"
+              ? "Tema claro"
+              : "Tema escuro"}
           </CommandItem>
         </CommandGroup>
 
@@ -116,12 +195,22 @@ export function CommandPalette() {
 
         <CommandGroup heading="Ir para">
           {rotasAtivas.map((r) => {
-            const Icone = ROTAS[r].icone
+            const Icone =
+              ROTAS[r].icone
+
             return (
-              <CommandItem key={r} value={`tela ${ROTAS[r].titulo}`} onSelect={() => ir(r)}>
+              <CommandItem
+                key={r}
+                value={`tela ${ROTAS[r].titulo}`}
+                onSelect={() => ir(r)}
+              >
                 <Icone />
+
                 {ROTAS[r].titulo}
-                <span className="text-muted-foreground ml-auto text-xs">{ROTAS[r].descricao}</span>
+
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {ROTAS[r].descricao}
+                </span>
               </CommandItem>
             )
           })}
@@ -135,18 +224,30 @@ export function CommandPalette() {
               key={v.id}
               value={`${v.marca} ${v.modelo} ${v.placa} ${v.ano} ${ROTULO_STATUS[v.status]}`}
               onSelect={() => {
-                setBuscaEstoque(`${v.marca} ${v.modelo}`)
+                setBuscaEstoque(
+                  `${v.marca} ${v.modelo}`
+                )
                 ir("estoque")
               }}
             >
               <Car />
+
               <span className="truncate">
                 {v.marca} {v.modelo}
               </span>
-              <span className="text-muted-foreground tabular text-xs">{v.ano}</span>
+
+              <span className="text-muted-foreground tabular text-xs">
+                {v.ano}
+              </span>
+
               <span className="ml-auto flex items-center gap-2 text-xs">
-                <span className="tabular text-muted-foreground">{moedaCurta(v.preco)}</span>
-                <StatusDot status={v.status} />
+                <span className="tabular text-muted-foreground">
+                  {moedaCurta(v.preco)}
+                </span>
+
+                <StatusDot
+                  status={v.status}
+                />
               </span>
             </CommandItem>
           ))}

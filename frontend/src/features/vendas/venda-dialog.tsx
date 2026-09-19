@@ -40,6 +40,7 @@ import { VeiculoTile } from "@/components/veiculo-tile"
 import {
   BANCOS,
   PARCELAS_FINANCIAMENTO,
+  limiteDescontoConfigurado,
   parcelaPrice,
   store,
   useEstado,
@@ -340,6 +341,21 @@ export function VendaDialog({
     [veiculo, valorNum]
   )
 
+  const limiteDesconto = limiteDescontoConfigurado()
+
+  const descontoPercentual = useMemo(() => {
+    if (
+      !veiculo ||
+      valorNum === null ||
+      valorNum >= veiculo.preco ||
+      veiculo.preco <= 0
+    ) {
+      return 0
+    }
+
+    return ((veiculo.preco - valorNum) / veiculo.preco) * 100
+  }, [veiculo, valorNum])
+
   const salvar = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -377,6 +393,17 @@ export function VendaDialog({
     ) {
       novos.valor =
         "O valor deve ser maior que zero."
+    } else if (veiculo && valorNum < veiculo.preco) {
+      if (formaPagamento !== "avista") {
+        novos.valor =
+          "Desconto é permitido somente em vendas à vista."
+      } else if (descontoPercentual > limiteDesconto + 0.000001) {
+        novos.valor = `O desconto de ${percentual(
+          descontoPercentual
+        )} ultrapassa o limite permitido de ${percentual(
+          limiteDesconto
+        )}.`
+      }
     }
 
     if (!data) {
@@ -461,11 +488,18 @@ export function VendaDialog({
 
     if (novoCliente) {
       const criado = store.criarCliente({
-        nome: cliente.nome.trim(),
-        cpf: cliente.cpf,
-        telefone: cliente.telefone,
+        nome: `${cliente.nome.trim()} ${cliente.sobrenome?.trim() ?? ""}`.trim(),
+        cpf: cliente.cpf.trim(),
+        telefone: cliente.telefone.trim(),
         email: cliente.email.trim(),
       })
+
+      if ("erro" in criado) {
+        toast.error("Não foi possível cadastrar o cliente", {
+          description: criado.erro,
+        })
+        return
+      }
 
       idCliente = criado.id
     }
@@ -1036,18 +1070,23 @@ export function VendaDialog({
                 label="Valor da venda"
                 erro={erros.valor}
                 dica={
-                  diferenca !== null &&
-                  diferenca !== 0
-                    ? `${
-                        diferenca < 0
-                          ? "Desconto"
-                          : "Acima da tabela"
-                      } de ${moeda(
+                  diferenca !== null && diferenca < 0
+                    ? `Desconto de ${moeda(
                         Math.abs(diferenca)
-                      )}`
-                    : veiculo
-                      ? "Igual ao preço de tabela."
-                      : undefined
+                      )} (${percentual(
+                        descontoPercentual
+                      )}). Limite: ${percentual(
+                        limiteDesconto
+                      )}, somente à vista.`
+                    : diferenca !== null && diferenca > 0
+                      ? `Acima da tabela em ${moeda(
+                          diferenca
+                        )}`
+                      : veiculo
+                        ? `Igual ao preço de tabela. Desconto máximo: ${percentual(
+                            limiteDesconto
+                          )}, somente à vista.`
+                        : undefined
                 }
               >
                 {(p) => (

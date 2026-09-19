@@ -382,6 +382,64 @@ function mesAtras(n: number, dia: number) {
   return d.toISOString().slice(0, 10)
 }
 
+export const LIMITE_DESCONTO_PADRAO = 10
+
+const CHAVE_CONFIGURACOES = "autosystem.configuracoes"
+
+export function limiteDescontoConfigurado() {
+  if (typeof window === "undefined") {
+    return LIMITE_DESCONTO_PADRAO
+  }
+
+  try {
+    const salvo = window.localStorage.getItem(CHAVE_CONFIGURACOES)
+    if (!salvo) return LIMITE_DESCONTO_PADRAO
+
+    const dados = JSON.parse(salvo)
+    const bruto = dados?.comercial?.limiteDesconto
+    const numero =
+      typeof bruto === "number"
+        ? bruto
+        : Number(String(bruto ?? "").replace(",", "."))
+
+    return Number.isFinite(numero) && numero >= 0 && numero <= LIMITE_DESCONTO_PADRAO
+      ? numero
+      : LIMITE_DESCONTO_PADRAO
+  } catch {
+    return LIMITE_DESCONTO_PADRAO
+  }
+}
+
+function validarDescontoVenda(
+  precoTabela: number,
+  valorVenda: number,
+  formaPagamento: TipoPagamentoVenda
+): { ok: true; percentual: number } | { erro: string } {
+  if (valorVenda <= 0) {
+    return { erro: "O valor da venda deve ser maior que zero." }
+  }
+
+  if (precoTabela <= 0 || valorVenda >= precoTabela) {
+    return { ok: true, percentual: 0 }
+  }
+
+  const desconto = ((precoTabela - valorVenda) / precoTabela) * 100
+
+  if (formaPagamento !== "avista") {
+    return { erro: "Desconto é permitido somente em vendas à vista." }
+  }
+
+  const limite = limiteDescontoConfigurado()
+
+  if (desconto > limite + 0.000001) {
+    return {
+      erro: `O desconto de ${desconto.toFixed(2).replace(".", ",")}% ultrapassa o limite permitido de ${limite.toFixed(2).replace(".", ",")}%.`,
+    }
+  }
+
+  return { ok: true, percentual: desconto }
+}
+
 type Estado = {
   veiculos: Veiculo[]
   clientes: Cliente[]
@@ -692,11 +750,11 @@ function seedBase(): Pick<
       { id: 15, marca: "Fiat", modelo: "Pulse Audace", ano: 2022, cor: "Vermelho", quilometragem: 24100, preco: 98900, placa: "UIO6R21", status: "disponivel", criado_em: diasAtras(88) },
     ],
     clientes: [
-      { id: 1, nome: "Marina Alves Ribeiro", cpf: "482.113.900-27", telefone: "(11) 98812-4471", email: "marina.alves@email.com", criado_em: diasAtras(70) },
-      { id: 2, nome: "Rodrigo Pacheco Lima", cpf: "318.774.220-04", telefone: "(11) 99143-2280", email: "rodrigo.lima@email.com", criado_em: diasAtras(50) },
-      { id: 3, nome: "Camila Duarte Nogueira", cpf: "905.226.118-63", telefone: "(19) 98220-7719", email: "", criado_em: diasAtras(20) },
-      { id: 4, nome: "Eduardo Tavares Melo", cpf: "271.008.554-90", telefone: "(11) 97455-1102", email: "eduardo.melo@email.com", criado_em: diasAtras(130) },
-      { id: 5, nome: "Letícia Barbosa Faria", cpf: "633.410.782-15", telefone: "(21) 98771-0034", email: "leticia.faria@email.com", criado_em: diasAtras(8) },
+      { id: 1, nome: "Marina Alves Ribeiro", cpf: "529.982.247-25", telefone: "(11) 98812-4471", email: "marina.alves@email.com", criado_em: diasAtras(70) },
+      { id: 2, nome: "Rodrigo Pacheco Lima", cpf: "168.995.350-09", telefone: "(11) 99143-2280", email: "rodrigo.lima@email.com", criado_em: diasAtras(50) },
+      { id: 3, nome: "Camila Duarte Nogueira", cpf: "111.444.777-35", telefone: "(19) 98220-7719", email: "", criado_em: diasAtras(20) },
+      { id: 4, nome: "Eduardo Tavares Melo", cpf: "123.456.789-09", telefone: "(11) 97455-1102", email: "eduardo.melo@email.com", criado_em: diasAtras(130) },
+      { id: 5, nome: "Letícia Barbosa Faria", cpf: "987.654.321-00", telefone: "(21) 98771-0034", email: "leticia.faria@email.com", criado_em: diasAtras(8) },
     ],
     funcionarios: [
       {
@@ -742,6 +800,17 @@ function seedBase(): Pick<
         comissao: 1.5,
         status: "ativo",
         data_admissao: "2026-03-20",
+      },
+      {
+        id: 5,
+        nome: "Gerente AutoSystem",
+        cpf: "567.890.123-54",
+        telefone: "(34) 99999-1005",
+        email: "gerente@autosystem.com.br",
+        cargo: "gerente",
+        comissao: 0,
+        status: "ativo",
+        data_admissao: "2025-01-06",
       },
     ],
     vendas: [
@@ -920,6 +989,16 @@ export const store = {
     const veiculo = estado.veiculos.find((v) => v.id === dados.veiculo_id)
     if (!veiculo) return { erro: "Veículo não encontrado." }
     if (veiculo.status === "vendido") return { erro: "Este veículo já foi vendido." }
+
+    const validacaoDesconto = validarDescontoVenda(
+      veiculo.preco,
+      dados.valor_venda,
+      dados.forma_pagamento
+    )
+
+    if ("erro" in validacaoDesconto) {
+      return validacaoDesconto
+    }
 
     const vendedor = estado.funcionarios.find(
       (f) =>
@@ -1128,6 +1207,16 @@ export const store = {
 
     if (veiculo.status === "vendido") {
       return { erro: "Este veículo já foi vendido." }
+    }
+
+    const validacaoDesconto = validarDescontoVenda(
+      veiculo.preco,
+      dadosVenda.valor_venda,
+      "financiamento"
+    )
+
+    if ("erro" in validacaoDesconto) {
+      return validacaoDesconto
     }
 
     const cliente = estado.clientes.find(
@@ -1438,12 +1527,19 @@ export const store = {
     )
   },
 
-  criarCliente(dados: Omit<Cliente, "id" | "criado_em">) {
+  criarCliente(
+    dados: Omit<Cliente, "id" | "criado_em">
+  ): Cliente | { erro: string } {
+    if (this.cpfEmUso(dados.cpf)) {
+      return { erro: "Já existe um cliente com este CPF." }
+    }
+
     const cliente: Cliente = {
       id: proximoId(estado.clientes),
       criado_em: new Date().toISOString().slice(0, 10),
       ...dados,
     }
+
     estado.clientes = [...estado.clientes, cliente]
     emitir()
     return cliente

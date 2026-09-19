@@ -67,6 +67,69 @@ function percentual(valor: number) {
   return `${valor.toFixed(2).replace(".", ",")}%`
 }
 
+function somenteLetras(valor: string) {
+  return valor.replace(/[^\p{L}\s]/gu, "").replace(/\s{2,}/g, " ")
+}
+
+function nomeValido(valor: string) {
+  return /^[\p{L}]+(?:\s+[\p{L}]+)*$/u.test(valor.trim())
+}
+
+function cpfValido(valor: string) {
+  const digitos = valor.replace(/\D/g, "")
+
+  if (digitos.length !== 11 || /^(\d)\1{10}$/.test(digitos)) {
+    return false
+  }
+
+  const calcularDigito = (base: string, pesoInicial: number) => {
+    const soma = base
+      .split("")
+      .reduce(
+        (total, digito, indice) =>
+          total + Number(digito) * (pesoInicial - indice),
+        0
+      )
+
+    const resto = (soma * 10) % 11
+    return resto === 10 ? 0 : resto
+  }
+
+  const primeiroDigito = calcularDigito(digitos.slice(0, 9), 10)
+
+  if (primeiroDigito !== Number(digitos[9])) {
+    return false
+  }
+
+  const segundoDigito = calcularDigito(digitos.slice(0, 10), 11)
+
+  return segundoDigito === Number(digitos[10])
+}
+
+const DOMINIO_EMAIL = "@autosystem.com.br"
+
+function parteLocalEmail(valor: string) {
+  return valor
+    .trim()
+    .toLowerCase()
+    .split("@")[0]
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9._-]/g, "")
+}
+
+function emailCorporativo(valor: string) {
+  const parteLocal = parteLocalEmail(valor)
+  return parteLocal ? `${parteLocal}${DOMINIO_EMAIL}` : ""
+}
+
+function separarNomeCompleto(nomeCompleto: string) {
+  const partes = nomeCompleto.trim().split(/\s+/).filter(Boolean)
+  return {
+    nome: partes[0] ?? "",
+    sobrenome: partes.slice(1).join(" "),
+  }
+}
+
 function iniciais(nome: string) {
   return nome
     .split(" ")
@@ -96,6 +159,7 @@ export function FuncionariosPage() {
   const [aberto, setAberto] = useState(false)
 
   const [nome, setNome] = useState("")
+  const [sobrenome, setSobrenome] = useState("")
   const [cpf, setCpf] = useState("")
   const [telefone, setTelefone] = useState("")
   const [email, setEmail] = useState("")
@@ -119,6 +183,7 @@ export function FuncionariosPage() {
   const [editando, setEditando] = useState(false)
 
   const [nomeEdicao, setNomeEdicao] = useState("")
+  const [sobrenomeEdicao, setSobrenomeEdicao] = useState("")
   const [cpfEdicao, setCpfEdicao] = useState("")
   const [telefoneEdicao, setTelefoneEdicao] = useState("")
   const [emailEdicao, setEmailEdicao] = useState("")
@@ -170,6 +235,7 @@ export function FuncionariosPage() {
 
   const limparFormulario = () => {
     setNome("")
+    setSobrenome("")
     setCpf("")
     setTelefone("")
     setEmail("")
@@ -238,7 +304,8 @@ export function FuncionariosPage() {
         : 0
 
     if (
-      !nome.trim() ||
+      !nomeValido(nome) ||
+      !nomeValido(sobrenome) ||
       !cpf.trim() ||
       !telefone.trim() ||
       !dataAdmissao ||
@@ -249,6 +316,11 @@ export function FuncionariosPage() {
         "Preencha corretamente os campos obrigatórios."
       )
 
+      return
+    }
+
+    if (!cpfValido(cpf)) {
+      toast.error("CPF inválido. Confira os dígitos.")
       return
     }
 
@@ -295,10 +367,10 @@ export function FuncionariosPage() {
     }
 
     const funcionario = store.criarFuncionario({
-      nome: nome.trim(),
+      nome: `${nome.trim()} ${sobrenome.trim()}`,
       cpf: cpf.trim(),
       telefone: telefone.trim(),
-      email: email.trim(),
+      email: emailCorporativo(email),
       cargo,
       comissao: percentualComissao,
       status: statusNovo,
@@ -310,7 +382,7 @@ export function FuncionariosPage() {
         criarUsuarioParaFuncionario(
           funcionario.id,
           {
-            email: email.trim(),
+            email: emailCorporativo(email),
             senha: senhaInicial,
             perfil: perfilAcesso,
             ativo:
@@ -350,10 +422,12 @@ export function FuncionariosPage() {
     setFuncionarioSelecionado(funcionario)
     setEditando(false)
 
-    setNomeEdicao(funcionario.nome)
+    const nomeSeparado = separarNomeCompleto(funcionario.nome)
+    setNomeEdicao(nomeSeparado.nome)
+    setSobrenomeEdicao(nomeSeparado.sobrenome)
     setCpfEdicao(funcionario.cpf)
     setTelefoneEdicao(funcionario.telefone)
-    setEmailEdicao(funcionario.email)
+    setEmailEdicao(parteLocalEmail(funcionario.email))
     setCargoEdicao(funcionario.cargo)
     setComissaoEdicao(
       funcionario.comissao.toString()
@@ -386,7 +460,8 @@ export function FuncionariosPage() {
         : 0
 
     if (
-      !nomeEdicao.trim() ||
+      !nomeValido(nomeEdicao) ||
+      !nomeValido(sobrenomeEdicao) ||
       !cpfEdicao.trim() ||
       !telefoneEdicao.trim() ||
       !dataAdmissaoEdicao ||
@@ -397,6 +472,11 @@ export function FuncionariosPage() {
         "Preencha corretamente os campos obrigatórios."
       )
 
+      return
+    }
+
+    if (!cpfValido(cpfEdicao)) {
+      toast.error("CPF inválido. Confira os dígitos.")
       return
     }
 
@@ -416,10 +496,10 @@ export function FuncionariosPage() {
     store.atualizarFuncionario(
       funcionarioSelecionado.id,
       {
-        nome: nomeEdicao.trim(),
+        nome: `${nomeEdicao.trim()} ${sobrenomeEdicao.trim()}`,
         cpf: cpfEdicao.trim(),
         telefone: telefoneEdicao.trim(),
-        email: emailEdicao.trim(),
+        email: emailCorporativo(emailEdicao),
         cargo: cargoEdicao,
         comissao: percentualComissao,
         status: statusEdicao,
@@ -438,7 +518,7 @@ export function FuncionariosPage() {
     setEditando(false)
 
     toast.success("Funcionário atualizado", {
-      description: `${nomeEdicao.trim()} teve os dados atualizados.`,
+      description: `${nomeEdicao.trim()} ${sobrenomeEdicao.trim()} teve os dados atualizados.`,
     })
   }
 
@@ -811,20 +891,30 @@ export function FuncionariosPage() {
             className="flex min-h-0 flex-1 flex-col"
           >
             <div className="scroll-mac flex-1 space-y-5 overflow-y-auto px-6 py-5">
-              <div className="space-y-2">
-                <Label htmlFor="nome-funcionario">
-                  Nome completo
-                </Label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="nome-funcionario">Nome</Label>
+                  <Input
+                    id="nome-funcionario"
+                    value={nome}
+                    onChange={(event) => setNome(somenteLetras(event.target.value))}
+                    placeholder="Nome"
+                    autoComplete="given-name"
+                    required
+                  />
+                </div>
 
-                <Input
-                  id="nome-funcionario"
-                  value={nome}
-                  onChange={(event) =>
-                    setNome(event.target.value)
-                  }
-                  placeholder="Nome do funcionário"
-                  required
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="sobrenome-funcionario">Sobrenome</Label>
+                  <Input
+                    id="sobrenome-funcionario"
+                    value={sobrenome}
+                    onChange={(event) => setSobrenome(somenteLetras(event.target.value))}
+                    placeholder="Sobrenome"
+                    autoComplete="family-name"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -892,15 +982,22 @@ export function FuncionariosPage() {
                   </span>
                 </Label>
 
-                <Input
-                  id="email-funcionario"
-                  type="email"
-                  value={email}
-                  onChange={(event) =>
-                    setEmail(event.target.value)
-                  }
-                  placeholder="nome@email.com"
-                />
+                <div className="flex">
+                  <Input
+                    id="email-funcionario"
+                    type="text"
+                    value={email}
+                    onChange={(event) =>
+                      setEmail(parteLocalEmail(event.target.value))
+                    }
+                    placeholder="nome.sobrenome"
+                    autoComplete="off"
+                    className="rounded-r-none"
+                  />
+                  <div className="bg-muted text-muted-foreground flex items-center rounded-r-md border border-l-0 px-3 text-[13px]">
+                    {DOMINIO_EMAIL}
+                  </div>
+                </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -1096,19 +1193,26 @@ export function FuncionariosPage() {
                           E-mail de acesso
                         </Label>
 
-                        <Input
-                          id="email-acesso-funcionario"
-                          type="email"
-                          value={email}
-                          onChange={(event) =>
-                            setEmail(event.target.value)
-                          }
-                          placeholder="nome@empresa.com.br"
-                          required={criarAcesso}
-                        />
+                        <div className="flex">
+                          <Input
+                            id="email-acesso-funcionario"
+                            type="text"
+                            value={email}
+                            onChange={(event) =>
+                              setEmail(parteLocalEmail(event.target.value))
+                            }
+                            placeholder="nome.sobrenome"
+                            autoComplete="off"
+                            className="rounded-r-none"
+                            required={criarAcesso}
+                          />
+                          <div className="bg-muted text-muted-foreground flex items-center rounded-r-md border border-l-0 px-3 text-[13px]">
+                            {DOMINIO_EMAIL}
+                          </div>
+                        </div>
 
                         <p className="text-muted-foreground text-[11.5px]">
-                          É o mesmo e-mail informado nos dados do funcionário.
+                          O domínio {DOMINIO_EMAIL} é preenchido automaticamente.
                         </p>
                       </div>
 
@@ -1224,24 +1328,30 @@ export function FuncionariosPage() {
                   className="flex min-h-0 flex-1 flex-col"
                 >
                   <div className="scroll-mac flex-1 space-y-5 overflow-y-auto px-6 py-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="nome-edicao">
-                        Nome completo
-                      </Label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="nome-edicao">Nome</Label>
+                        <Input
+                          id="nome-edicao"
+                          value={nomeEdicao}
+                          onChange={(event) => setNomeEdicao(somenteLetras(event.target.value))}
+                          placeholder="Nome"
+                          autoComplete="given-name"
+                          required
+                        />
+                      </div>
 
-                      <Input
-                        id="nome-edicao"
-                        value={nomeEdicao}
-                        onChange={(event) =>
-                          setNomeEdicao(
-                            event.target.value
-                          )
-                        }
-                        placeholder="000.000.000-00"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        required
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="sobrenome-edicao">Sobrenome</Label>
+                        <Input
+                          id="sobrenome-edicao"
+                          value={sobrenomeEdicao}
+                          onChange={(event) => setSobrenomeEdicao(somenteLetras(event.target.value))}
+                          placeholder="Sobrenome"
+                          autoComplete="family-name"
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -1312,16 +1422,24 @@ export function FuncionariosPage() {
                         </span>
                       </Label>
 
-                      <Input
-                        id="email-edicao"
-                        type="email"
-                        value={emailEdicao}
-                        onChange={(event) =>
-                          setEmailEdicao(
-                            event.target.value
-                          )
-                        }
-                      />
+                      <div className="flex">
+                        <Input
+                          id="email-edicao"
+                          type="text"
+                          value={emailEdicao}
+                          onChange={(event) =>
+                            setEmailEdicao(
+                              parteLocalEmail(event.target.value)
+                            )
+                          }
+                          placeholder="nome.sobrenome"
+                          autoComplete="off"
+                          className="rounded-r-none"
+                        />
+                        <div className="bg-muted text-muted-foreground flex items-center rounded-r-md border border-l-0 px-3 text-[13px]">
+                          {DOMINIO_EMAIL}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">

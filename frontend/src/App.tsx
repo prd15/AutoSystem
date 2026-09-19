@@ -5,7 +5,6 @@ import {
   UserPlus,
 } from "lucide-react"
 import { useState } from "react"
-
 import {
   AppProvider,
   useApp,
@@ -39,7 +38,6 @@ import { VisaoGeralPage } from "@/features/visao-geral/visao-geral-page"
 function Conteudo() {
   const {
     rota,
-    setNovoVeiculo,
     venda,
     setVenda,
     vendaVeiculoId,
@@ -74,23 +72,10 @@ function Conteudo() {
 
     case "estoque":
       pagina = <EstoquePage />
-
-      acoes = (
-        <Button
-          size="sm"
-          onClick={() =>
-            setNovoVeiculo(true)
-          }
-        >
-          <Plus className="size-4" />
-          Cadastrar veículo
-        </Button>
-      )
       break
 
     case "vendas":
       pagina = <VendasPage />
-
       acoes = (
         <Button
           size="sm"
@@ -104,7 +89,6 @@ function Conteudo() {
 
     case "clientes":
       pagina = <ClientesPage />
-
       acoes = (
         <Button
           size="sm"
@@ -124,7 +108,6 @@ function Conteudo() {
 
     case "consorcios":
       pagina = <ConsorciosPage />
-
       acoes = (
         <Button
           size="sm"
@@ -140,7 +123,6 @@ function Conteudo() {
 
     case "financiamentos":
       pagina = <FinanciamentosPage />
-
       acoes = (
         <Button
           size="sm"
@@ -156,7 +138,6 @@ function Conteudo() {
 
     case "financeiro":
       pagina = <FinanceiroPage />
-
       acoes = (
         <>
           <Button

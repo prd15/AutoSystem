@@ -127,26 +127,20 @@ function usuariosIniciais(): Usuario[] {
         "ativo"
     )
 
-  if (ativos.length === 0) {
-    return [
-      {
-        id: 1,
-        funcionarioId: null,
-        nome: "Administrador",
-        email:
-          "admin@autosystem.com.br",
-        senha: "123456",
-        perfil: "admin",
-        ativo: true,
-      },
-    ]
+  const administrador: Usuario = {
+    id: 1,
+    funcionarioId: null,
+    nome: "Administrador",
+    email: "admin@autosystem.com.br",
+    senha: "123456",
+    perfil: "admin",
+    ativo: true,
   }
 
-  return ativos.map(
-    (funcionario, index) => ({
-      id: index + 1,
-      funcionarioId:
-        funcionario.id,
+  const usuariosDosFuncionarios = ativos.map(
+    (funcionario, index): Usuario => ({
+      id: index + 2,
+      funcionarioId: funcionario.id,
       nome: funcionario.nome,
       email:
         funcionario.email ||
@@ -158,6 +152,11 @@ function usuariosIniciais(): Usuario[] {
       ativo: true,
     })
   )
+
+  return [
+    administrador,
+    ...usuariosDosFuncionarios,
+  ]
 }
 
 function carregarUsuarios(): Usuario[] {
